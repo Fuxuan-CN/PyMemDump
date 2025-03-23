@@ -179,7 +179,7 @@ def dump_memory(
                 break
 
             if mbi.State == MEM_COMMIT and mbi.Protect in PAGE_READABLE:
-                logger.debug(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} ({mbi.RegionSize} 字节)")
+                logger.info(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} ({mbi.RegionSize} 字节)")
                 filename = f"{pid}_{address:016x}-{address + mbi.RegionSize:016x}.bin"
                 output_path = os.path.join(output_dir, filename)
 
@@ -279,7 +279,7 @@ def dump_memory_by_address(
                 if address + mbi.RegionSize > end_address:
                     mbi.RegionSize = end_address - address
 
-                logger.debug(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} ({mbi.RegionSize} 字节)")
+                logger.info(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} ({mbi.RegionSize} 字节)")
                 filename = f"{pid}_{address:016x}-{address + mbi.RegionSize:016x}.bin"
                 output_path = os.path.join(output_dir, filename)
 
