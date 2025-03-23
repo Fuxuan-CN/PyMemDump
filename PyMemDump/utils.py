@@ -1,6 +1,9 @@
 import psutil
 import ctypes
-from .structs import MEMORY_BASIC_INFORMATION
+from .structs import (
+    MEMORY_BASIC_INFORMATION,
+    THREADENTRY32
+)
 from typing import Literal
 import threading
 from .constants import (
@@ -18,6 +21,54 @@ from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
 import os
 from contextlib import contextmanager
+
+def suspend_process(pid):
+    """ 暂停目标进程中的所有线程 """
+    logger.info(f"暂停进程 {pid} 中的所有线程")
+    h_snapshot = kernel32.CreateToolhelp32Snapshot(0x00000004, pid)  # TH32CS_SNAPTHREAD
+    if h_snapshot == -1:
+        raise DumpException(ctypes.WinError(ctypes.get_last_error()))
+
+    try:
+        te32 = THREADENTRY32()
+        te32.dwSize = ctypes.sizeof(THREADENTRY32)  # 确保 dwSize 被正确设置
+        if not kernel32.Thread32First(h_snapshot, ctypes.byref(te32)):
+            raise DumpException(ctypes.WinError(ctypes.get_last_error()))
+
+        while True:
+            if te32.th32OwnerProcessID == pid:
+                h_thread = kernel32.OpenThread(0x0002, False, te32.th32ThreadID)  # THREAD_SUSPEND_RESUME
+                if h_thread:
+                    kernel32.SuspendThread(h_thread)
+                    kernel32.CloseHandle(h_thread)
+            if not kernel32.Thread32Next(h_snapshot, ctypes.byref(te32)):
+                break
+    finally:
+        kernel32.CloseHandle(h_snapshot)
+
+def resume_process(pid):
+    """ 恢复目标进程中的所有线程 """
+    logger.info(f"恢复进程 {pid} 中的所有线程")
+    h_snapshot = kernel32.CreateToolhelp32Snapshot(0x00000004, pid)  # TH32CS_SNAPTHREAD
+    if h_snapshot == -1:
+        raise DumpException(ctypes.WinError(ctypes.get_last_error()))
+
+    try:
+        te32 = THREADENTRY32()
+        te32.dwSize = ctypes.sizeof(THREADENTRY32)  # 确保 dwSize 被正确设置
+        if not kernel32.Thread32First(h_snapshot, ctypes.byref(te32)):
+            raise DumpException(ctypes.WinError(ctypes.get_last_error()))
+
+        while True:
+            if te32.th32OwnerProcessID == pid:
+                h_thread = kernel32.OpenThread(0x0002, False, te32.th32ThreadID)  # THREAD_SUSPEND_RESUME
+                if h_thread:
+                    kernel32.ResumeThread(h_thread)
+                    kernel32.CloseHandle(h_thread)
+            if not kernel32.Thread32Next(h_snapshot, ctypes.byref(te32)):
+                break
+    finally:
+        kernel32.CloseHandle(h_snapshot)
 
 @contextmanager
 def open_process(pid, access):
@@ -148,7 +199,7 @@ def dump_memory(
                             h_process, ctypes.c_ulonglong(address + offset), buffer, chunk_size, ctypes.byref(bytes_read)
                         ):
                             # 将 ctypes.c_byte 数组转换为字节对象
-                            data = content_by_fmt(buffer.raw[:bytes_read.value], content_fmt, encoding)
+                            data = content_by_fmt(buffer[:bytes_read.value], content_fmt, encoding)
                             f.write(data)
                             
                             offset += chunk_size

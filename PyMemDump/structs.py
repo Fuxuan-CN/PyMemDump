@@ -11,3 +11,15 @@ class MEMORY_BASIC_INFORMATION(ctypes.Structure):
         ("Protect", wintypes.DWORD),
         ("Type", wintypes.DWORD),
     ]
+
+class THREADENTRY32(ctypes.Structure):
+    """ Thread entry structure """
+    _fields_ = [
+        ("dwSize", wintypes.DWORD),
+        ("cntUsage", wintypes.DWORD),
+        ("th32ThreadID", wintypes.DWORD),
+        ("th32OwnerProcessID", wintypes.DWORD),
+        ("tpBasePri", wintypes.LONG),
+        ("tpDeltaPri", wintypes.LONG),
+        ("dwFlags", wintypes.DWORD)
+    ]

@@ -9,7 +9,9 @@ from .utils import (
     get_total_memory_size, 
     dump_memory_by_address,
     concurrent_dump_memory,
-    get_all_memory_addr_range
+    get_all_memory_addr_range,
+    suspend_process,
+    resume_process
 )
 from .constants import CPU_COUNT
 from ._types import (
@@ -90,6 +92,14 @@ class MemoryDumper:
             return False
         return is_process_running(self.pid)
     
+    def _stop_process(self) -> None:
+        """ Stops the process """
+        suspend_process(self.pid)
+
+    def _resume_process(self) -> None:
+        """ Resumes the process """
+        resume_process(self.pid)
+    
     def get_all_addr_range(self, to_json: bool = False) -> dict[str, str | int | list[tuple[str, str]]:]:
         """
         Get all memory addresses of the target process.
@@ -97,6 +107,7 @@ class MemoryDumper:
         Returns:
             list[tuple[int, int]]: List of memory addresses of the target process.
         """
+        self._stop_process()
         logger.info(f"Getting all memory addresses of process {self.process_target}.")
         if not self._is_process_running():
             raise ProcessNotRunning(f"Process {self.process_name or self.pid} is not running.")
@@ -109,6 +120,7 @@ class MemoryDumper:
             with open(f"{self.process_name or self.pid}_all_addresses.json", "w") as f:
                 json.dump(data_addrs, f, indent=4)
         logger.info(f"Memory addresses of process {self.process_target} generated.")
+        self._resume_process()
         return data_addrs
     
     def _extra_process_id(self, desc: Process_Desc) -> int:
@@ -133,6 +145,7 @@ class MemoryDumper:
 
     def dump(self) -> None:
         """ Dumps the memory of the process """
+        self._stop_process()
         try:
             if self.concurrent:
                 self.dump_memory_concurrent(workers=self.workers)
@@ -148,6 +161,8 @@ class MemoryDumper:
                 dump_memory(self.pid, self.save_path, self.process_mem_size, self.ignore_read_error)
         except KeyboardInterrupt:
             logger.critical("Memory dumping interrupted by user.")
+        finally:
+            self._resume_process()
 
     def dump_memory_by_address(self, start_address: int, end_address: int) -> None:
         """
@@ -157,6 +172,7 @@ class MemoryDumper:
             start_address (int): Starting address of the memory range to dump.
             end_address (int): Ending address of the memory range to dump.
         """
+        self._stop_process()
         try:
             if not self._is_process_running():
                 raise ProcessNotRunning(f"Process {self.process_name or self.pid} is not running.")
@@ -164,10 +180,13 @@ class MemoryDumper:
             dump_memory_by_address(self.pid, self.save_path, start_address, end_address, self.ignore_read_error, content_fmt=self.data_fmt, encoding=self.encoding)
         except KeyboardInterrupt:
             logger.critical("Memory dumping interrupted by user.")
+        finally:
+            self._resume_process()
 
     def dump_memory_concurrent(self, workers: int = CPU_COUNT) -> None:
         """ Dumps the memory of the target process concurrently """
         try:
+            self._stop_process()
             logger.info(f"Dumping memory of process {self.process_target} to {self.save_path} concurrently.")
 
             if not self._is_process_running():
@@ -176,6 +195,8 @@ class MemoryDumper:
             concurrent_dump_memory(self.pid, self.save_path, self.ignore_read_error, workers=workers, content_fmt=self.data_fmt, encoding=self.encoding)
         except KeyboardInterrupt:
             logger.critical("Memory dumping interrupted by user.")
+        finally:
+            self._resume_process()
 
     @staticmethod
     def dump_with_args(language: Literal["en_US", "zh_CN"] = "zh_CN") -> None:
@@ -196,9 +217,6 @@ class MemoryDumper:
         parser.add_argument("-f", "--content-fmt", type=str, choices=["hex", "bin", "ascii"], default="bin", help=get_text(language, "content-fmt"))
         parser.add_argument("-c", "--encoding", type=str, default="utf-8", help=get_text(language, "encoding"))
         args = parser.parse_args()
-
-        if not args.concurrent and args.workers:
-            raise ValueError("workers can only be specified when concurrent is set.")
 
         if args.scan_addr:
             # 扫描不需要指定格式，导出的时候再指定
