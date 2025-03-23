@@ -11,7 +11,7 @@ def load_requirements(filepath: str = "requirements.txt") -> list[str]:
 
 setup(
     name="PyMemDump",
-    version="0.1.1",
+    version="0.1.2",
     packages=find_packages(),
     author="Fuxuan-CN",
     author_email="fuxuan001@foxmail.com",
