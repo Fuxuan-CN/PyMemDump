@@ -30,6 +30,20 @@
             "end-address" : "转储内存的结束地址。(需要启用 by_addr 参数，这可以再命令行中通过 --by_addr 来启用)",
             "content-fmt": "转储内容的格式。可选格式：{hex, ascii, bytes}。",
             "encoding": "用于解码字节到 ASCII 的编码。默认为 UTF-8。"
+        },
+        "fr_FR": {
+            "tool_desc": "Outil de vidage de mémoire pour processus Python.",
+            "scan_addr": "Analyse toutes les adresses mémoire du processus cible et les enregistre dans un fichier json.",
+            "concurrent": "Vide la mémoire du processus cible de manière concurrente.",
+            "workers": "Nombre de travailleurs concurrents à utiliser pour vider la mémoire.",
+            "process": "Processus cible à vider la mémoire.",
+            "by_addr": "Vide la mémoire du processus cible dans une plage d'adresses spécifiée.",
+            "output": "Fichier de sortie pour enregistrer le vidage de la mémoire.",
+            "ignore-read-error": "Ignore les erreurs de lecture lors du vidage de la mémoire. Utile lorsque le processus cible écrit dans la mémoire pendant que le vidage se lit.",
+            "start-address": "Adresse de début de la plage de mémoire à vider.",
+            "end-address": "Adresse de fin de la plage de mémoire à vider.",
+            "content-fmt": "Format du contenu à vider. Peut être l'un des suivants : {hex, ascii, bytes}.",
+            "encoding": "Encodage à utiliser pour décoder les octets en ASCII. Par défaut : UTF-8."
         }
     }
 }

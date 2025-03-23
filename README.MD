@@ -87,16 +87,25 @@ dumper.dump()
 
 ## 国际化支持
 
-PyMemDump 支持多语言，可以通过`--lang`参数指定语言：
+- PyMemDump支持多语言，你可以如下操作切换语言：
 
-```bash
-python -m PyMemDump --process notepad.exe --output ./dumps --lang en_US
+```python
+from PyMemDump import MemoryDumper
+
+MemoryDumper.dump_with_args(language="zh_CN")
 ```
 
 目前支持的语言有：
 
 - 英文（`en_US`）
 - 中文（`zh_CN`）
+- 法语 (`fr_FR`)
+
+- **想帮忙添加语言?**
+
+查看下列文档来帮助你如何添加新语言；
+
+- [i18n贡献文档](docs/I18NCONTROBUILTING.MD)
 
 ## 日志记录
 
@@ -123,6 +132,6 @@ PyMemDump 采用 MIT 许可证，详情请参阅 [LICENSE](LICENSE) 文件。
 ## 联系方式
 
 - GitHub: [Fuxuan-CN](https://github.com/Fuxuan-CN)
-- Email: [Fuxuan-CN](fuxuan001@foxmail.com)
+- Email: `fuxuan001@foxmail.com`
 - QQ: 3072252442
 - WeChat: Ricky-zhang1018
