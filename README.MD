@@ -1,8 +1,8 @@
 
 # PyMemDump - Python 内存转储工具
 
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/yourusername/PyMemDump/blob/main/LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/yourusername/PyMemDump.svg?style=social)](https://github.com/yourusername/PyMemDump/stargazers)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Fuxuan-CN/PyMemDump/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/Fuxuan-CN/PyMemDump.svg?style=social)](https://github.com/Fuxuan-CN/PyMemDump/stargazers)
 
 PyMemDump 是一个用于转储系统进程内存的工具。它支持按进程名或PID指定目标进程，并将内存内容导出到指定的文件中。该工具还支持并发导出、指定地址范围导出、多种内容格式化选项等功能。
 
