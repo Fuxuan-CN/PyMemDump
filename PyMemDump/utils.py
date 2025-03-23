@@ -180,7 +180,7 @@ def dump_memory(
 
             if mbi.State == MEM_COMMIT and mbi.Protect in PAGE_READABLE:
                 logger.debug(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} ({mbi.RegionSize} 字节)")
-                filename = f"{pid}:{address:016x}-{address + mbi.RegionSize:016x}.bin"
+                filename = f"{pid}_{address:016x}-{address + mbi.RegionSize:016x}.bin"
                 output_path = os.path.join(output_dir, filename)
 
                 with open(output_path, "wb") as f:
@@ -280,7 +280,7 @@ def dump_memory_by_address(
                     mbi.RegionSize = end_address - address
 
                 logger.debug(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} ({mbi.RegionSize} 字节)")
-                filename = f"{pid}:{address:016x}-{address + mbi.RegionSize:016x}.bin"
+                filename = f"{pid}_{address:016x}-{address + mbi.RegionSize:016x}.bin"
                 output_path = os.path.join(output_dir, filename)
 
                 with open(output_path, "wb") as f:
@@ -337,7 +337,7 @@ def dump_memory_region(
     try:
         with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
             logger.info(f"导出内存区域: {start_address:016x}-{end_address:016x}")
-            filename = f"{pid}:{start_address:016x}-{end_address:016x}.bin"
+            filename = f"{pid}_{start_address:016x}-{end_address:016x}.bin"
             output_path = os.path.join(output_dir, filename)
 
             with threading.Lock():
