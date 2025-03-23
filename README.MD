@@ -95,6 +95,12 @@ from PyMemDump import MemoryDumper
 MemoryDumper.dump_with_args(language="zh_CN")
 ```
 
+- 不过一般来说，这个会自动检测语言来输出相应的提示信息。
+
+```python
+python -m PyMemDump --help
+```
+
 目前支持的语言有：
 
 - 英文（`en_US`）
