@@ -8,3 +8,5 @@ commands.txt
 build/
 
 dist/
+
+PyMemDump.egg-info/
