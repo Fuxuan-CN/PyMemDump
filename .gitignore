@@ -12,3 +12,5 @@ dist/
 PyMemDump.egg-info/
 
 MemDumped
+
+*_all_addresses.json
