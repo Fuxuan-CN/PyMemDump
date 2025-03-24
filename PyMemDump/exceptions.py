@@ -1,4 +1,4 @@
-
+""" all exceptions will be defined here """
 
 class DumpException(Exception):
     """ Base class for all exceptions raised by MemDump """

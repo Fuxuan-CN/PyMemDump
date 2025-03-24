@@ -1,4 +1,4 @@
-
+""" the i18n module, useful for any language support """
 import json
 
 LANG_PATH = "PyMemDump/res/lang.json"

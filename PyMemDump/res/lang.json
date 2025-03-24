@@ -15,7 +15,8 @@
             "start-address" : "Start address of the memory range to dump.",
             "end-address" : "End address of the memory range to dump.",
             "content-fmt": "Format of the content to dump. Can be one of the following: {hex, ascii, bytes}.",
-            "encoding": "Encoding to use when decoding bytes to ASCII. Defaults to UTF-8."
+            "encoding": "Encoding to use when decoding bytes to ASCII. Defaults to UTF-8.",
+            "verbose": "Enables verbose output."
         },
         "zh_CN": {
             "tool_desc": "Python 内存转储工具。",
@@ -29,7 +30,8 @@
             "start-address" : "转储内存的起始地址。(需要启用 by_addr 参数，这可以再命令行中通过 --by_addr 来启用)",
             "end-address" : "转储内存的结束地址。(需要启用 by_addr 参数，这可以再命令行中通过 --by_addr 来启用)",
             "content-fmt": "转储内容的格式。可选格式：{hex, ascii, bytes}。",
-            "encoding": "用于解码字节到 ASCII 的编码。默认为 UTF-8。"
+            "encoding": "用于解码字节到 ASCII 的编码。默认为 UTF-8。",
+            "verbose": "输出详细信息。"
         },
         "fr_FR": {
             "tool_desc": "Outil de vidage de mémoire pour processus Python.",
@@ -43,7 +45,8 @@
             "start-address": "Adresse de début de la plage de mémoire à vider.",
             "end-address": "Adresse de fin de la plage de mémoire à vider.",
             "content-fmt": "Format du contenu à vider. Peut être l'un des suivants : {hex, ascii, bytes}.",
-            "encoding": "Encodage à utiliser pour décoder les octets en ASCII. Par défaut : UTF-8."
+            "encoding": "Encodage à utiliser pour décoder les octets en ASCII. Par défaut : UTF-8.",
+            "verbose": "Active la sortie détaillée."
         }
     }
 }

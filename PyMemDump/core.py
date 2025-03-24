@@ -3,15 +3,17 @@ import json
 from typing import Literal
 from .i18n import get_text
 from .utils import (
-    dump_memory, 
     get_pid_with_name, 
     is_process_running, 
     get_total_memory_size, 
-    dump_memory_by_address,
-    concurrent_dump_memory,
     get_all_memory_addr_range,
     suspend_process,
     resume_process
+)
+from ._functional import (
+    dump_memory,
+    dump_memory_by_address,
+    concurrent_dump_memory
 )
 from .constants import CPU_COUNT
 from ._types import (
@@ -21,6 +23,7 @@ from ._types import (
 from .exceptions import ProcessNotRunning
 from ._logger import logger
 import argparse
+import logging
 
 class MemoryDumper:
     """
@@ -60,7 +63,8 @@ class MemoryDumper:
         workers: int = CPU_COUNT, 
         ignore_read_error: bool = False,
         content_fmt: Literal["hex", "bin", "ascii"] = "bin",
-        encoding: str = "utf-8"
+        encoding: str = "utf-8",
+        verbose: bool = False
     ) -> None:
         self.process_target = process_desc
         """ user input process description, can be pid or process name """
@@ -82,6 +86,9 @@ class MemoryDumper:
         """ content format to save the memory dump """
         self.encoding = encoding
         """ encoding to save the memory dump """
+        if not verbose:
+            logging.disable() # disable logging if verbose is False
+
         logger.info("MemoryDumper initialized.")
         self.pid = self._extra_process_id(self.process_target)
 
@@ -216,11 +223,12 @@ class MemoryDumper:
         parser.add_argument("-e", "--end-address", type=MemAddress(), help=get_text(language, "end-address"))
         parser.add_argument("-f", "--content-fmt", type=str, choices=["hex", "bin", "ascii"], default="bin", help=get_text(language, "content-fmt"))
         parser.add_argument("-c", "--encoding", type=str, default="utf-8", help=get_text(language, "encoding"))
+        parser.add_argument("-vb", "--verbose", action="store_true", help=get_text(language, "verbose"))
         args = parser.parse_args()
 
         if args.scan_addr:
             # 扫描不需要指定格式，导出的时候再指定
-            md = MemoryDumper(process_desc=args.process, save_path=args.output)
+            md = MemoryDumper(process_desc=args.process, save_path=args.output, verbose=args.verbose)
             md.get_all_addr_range(to_json=True)
             return
 
@@ -228,7 +236,16 @@ class MemoryDumper:
             raise ValueError("concurrent and by_addr cannot be set at the same time.")
 
         if args.concurrent:
-            md = MemoryDumper(process_desc=args.process, save_path=args.output, concurrent=True, workers=args.workers, ignore_read_error=args.ignore_read_error, content_fmt=args.content_fmt, encoding=args.encoding)
+            md = MemoryDumper(
+                process_desc=args.process, 
+                save_path=args.output, 
+                concurrent=True, 
+                workers=args.workers, 
+                ignore_read_error=args.ignore_read_error, 
+                content_fmt=args.content_fmt, 
+                encoding=args.encoding,
+                verbose=args.verbose
+            )
             md.dump()
             return
         
@@ -238,7 +255,14 @@ class MemoryDumper:
         if args.by_addr:
             if args.start_address is None or args.end_address is None:
                 raise ValueError("start_address and end_address must be specified when by_addr is set.")
-            md = MemoryDumper(process_desc=args.process, save_path=args.output, ignore_read_error=args.ignore_read_error, content_fmt=args.content_fmt, encoding=args.encoding)
+            md = MemoryDumper(
+                 process_desc=args.process, 
+                 save_path=args.output, 
+                 ignore_read_error=args.ignore_read_error, 
+                 content_fmt=args.content_fmt, 
+                 encoding=args.encoding,
+                 verbose=args.verbose
+                )
             if (isinstance(args.start_address, str) and args.start_address.startswith("0x")) \
                 and (isinstance(args.end_address, str) and args.end_address.startswith("0x")):
                 addr_16_start = int(args.start_address, 16)
@@ -249,7 +273,14 @@ class MemoryDumper:
             md.dump_memory_by_address(addr_16_start, addr_16_end)
             return
         else:
-            md = MemoryDumper(process_desc=args.process, save_path=args.output, ignore_read_error=args.ignore_read_error, content_fmt=args.content_fmt, encoding=args.encoding)
+            md = MemoryDumper(
+                 process_desc=args.process, 
+                 save_path=args.output, 
+                 ignore_read_error=args.ignore_read_error, 
+                 content_fmt=args.content_fmt, 
+                 encoding=args.encoding,
+                 verbose=args.verbose
+                )
             md.dump()
             return
 
