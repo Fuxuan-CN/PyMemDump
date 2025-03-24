@@ -73,7 +73,10 @@ class Builder:
                 exit(e.returncode)
 
     def __del__(self) -> None:
-        self.remove_pycache('FuXLogger')
+        self.remove_pycache('PyMemDump')
+        self.remove_build_dirs()
+        self.remove_egg_info()
+        self.remove_dist_dirs()
 
 def main():
     parser = argparse.ArgumentParser(description="Simple build script")
