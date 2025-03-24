@@ -42,14 +42,6 @@ class Builder:
                     print(f"Removing egg-info folder: {os.path.join(root, name)}")
                     shutil.rmtree(os.path.join(root, name))
 
-    def remove_dist_dirs(self) -> None:
-        # 查找dist文件夹下和子文件夹下的所有*.egg-info文件夹, 并删除
-        for root, dirs, files in os.walk('dist'):
-            for name in dirs:
-                if name.endswith('.egg-info'):
-                    print(f"Removing egg-info folder: {os.path.join(root, name)}")
-                    shutil.rmtree(os.path.join(root, name))
-
     def read_commands(self) -> None:
         try:
             with open(self.command_file, 'r') as f:
@@ -76,7 +68,6 @@ class Builder:
         self.remove_pycache('PyMemDump')
         self.remove_build_dirs()
         self.remove_egg_info()
-        self.remove_dist_dirs()
 
 def main():
     parser = argparse.ArgumentParser(description="Simple build script")
