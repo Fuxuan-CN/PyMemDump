@@ -1,7 +1,7 @@
 """ the i18n module, useful for any language support """
 import json
 
-LANG_PATH = "PyMemDump/res/lang.json"
+LANG_PATH = "./res/lang.json"
 
 def load_languages() -> dict[str, dict[str, str]]:
     """ Load language data from json file """
