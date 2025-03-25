@@ -58,7 +58,7 @@ class MemoryDumper:
 
     def __init__(self, 
         process_desc: Process_Desc = None, 
-        save_path: str = None, 
+        save_path: str = "MemDumped", 
         concurrent: bool = False, 
         workers: int = CPU_COUNT, 
         ignore_read_error: bool = False,
