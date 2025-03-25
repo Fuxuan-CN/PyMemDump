@@ -3,7 +3,7 @@ from functools import wraps
 from typing import Callable, Any
 import warnings
 
-class Future:
+class FutureFeature:
     """ Decorator for future implementation """
 
     def __init__(self, version_implemented: str, ignore: bool = False) -> None:
@@ -16,7 +16,11 @@ class Future:
         """ decorator call """
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            warn_msg = f"{func.__name__} is not implemented yet, it will be implemented in version {self.version_implemented}."
+            warn_msg = f"""
+{func.__name__} is a future feature and is not implemented yet.
+It will be implemented in version {self.version_implemented}.
+excepted functionality: {func.__doc__}
+"""
             if not self.ignore:
                 warnings.warn(warn_msg, FutureWarning)
             return func(*args, **kwargs)
@@ -32,7 +36,7 @@ class Future:
 
 # 示例用法
 if __name__ == "__main__":
-    @Future(version_implemented="0.1.0")
+    @FutureFeature(version_implemented="0.1.0")
     def test_future() -> None:
         """ test future function """
         print("test future function")

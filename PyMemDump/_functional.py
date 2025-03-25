@@ -20,7 +20,7 @@ from .kernelCore import kernel32
 from .mem_progress import mem_progress
 from .exceptions import DumpException
 from ._logger import logger
-from .decorators import Future
+from .decorators import FutureFeature
 
 def dump_memory(
     pid: int, 
@@ -278,7 +278,7 @@ def concurrent_dump_memory(
 
         logger.info(f"内存导出完成，失败任务数: {failed_tasks}")
 
-@Future("v0.2.0")
+@FutureFeature("v0.2.0")
 def search_addr_by_bytes(pid: int, patten: list[int] | bytes | bytearray | memoryview) -> dict[str, list[int]]:
     """
     搜索指定字节序列的内存地址
