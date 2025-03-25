@@ -1,7 +1,8 @@
 """ the i18n module, useful for any language support """
 import json
+from pathlib import Path
 
-LANG_PATH = "./res/lang.json"
+LANG_PATH = Path(__file__).parent / "res" / "lang.json"
 
 def load_languages() -> dict[str, dict[str, str]]:
     """ Load language data from json file """
