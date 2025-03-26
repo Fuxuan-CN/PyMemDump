@@ -70,7 +70,7 @@ def dump_memory(
                             h_process, ctypes.c_ulonglong(address + offset), buffer, chunk_size, ctypes.byref(bytes_read)
                         ):
                             # 将 ctypes.c_byte 数组转换为字节对象
-                            data = content_by_fmt(buffer[:bytes_read.value], content_fmt, encoding)
+                            data = content_by_fmt(ctypes.string_at(ctypes.addressof(buffer), bytes_read.value), content_fmt, encoding)
                             f.write(data)
                             
                             offset += chunk_size
@@ -171,7 +171,7 @@ def dump_memory_by_address(
                                 h_process, ctypes.c_ulonglong(address + offset), buffer, chunk_size, ctypes.byref(bytes_read)
                             ):
                                 # 将 ctypes.c_byte 数组转换为字节对象
-                                data = content_by_fmt(buffer.raw[:bytes_read.value], content_fmt, encoding)
+                                data = content_by_fmt(ctypes.string_at(ctypes.addressof(buffer), bytes_read.value), content_fmt, encoding)
                                 f.write(data)
                                 offset += chunk_size
                                 remaining_size -= chunk_size
