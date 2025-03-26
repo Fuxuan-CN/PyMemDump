@@ -2,6 +2,12 @@ from ._types import Process_Desc
 import json
 from typing import Literal
 from .i18n import get_text
+from .constants import CPU_COUNT
+from .exceptions import ProcessNotRunning
+from ._logger import logger
+import argparse
+import logging
+from datetime import datetime
 from .utils import (
     get_pid_with_name, 
     is_process_running, 
@@ -15,15 +21,10 @@ from ._functional import (
     dump_memory_by_address,
     concurrent_dump_memory
 )
-from .constants import CPU_COUNT
 from ._types import (
     Process,
     MemAddress
 )
-from .exceptions import ProcessNotRunning
-from ._logger import logger
-import argparse
-import logging
 
 class MemoryDumper:
     """
@@ -107,7 +108,7 @@ class MemoryDumper:
         """ Resumes the process """
         resume_process(self.pid)
     
-    def get_all_addr_range(self, to_json: bool = False) -> dict[str, str | int | list[tuple[str, str]]:]:
+    def get_all_addr_range(self, to_json: bool = False) -> dict[str, str | int | list[dict[str, str]]]:
         """
         Get all memory addresses of the target process.
 
@@ -119,6 +120,7 @@ class MemoryDumper:
         if not self._is_process_running():
             raise ProcessNotRunning(f"Process {self.process_name or self.pid} is not running.")
         data_addrs = {
+            "scan_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "process_name": self.process_name,
             "pid": self.pid,
             "addresses": get_all_memory_addr_range(self.pid)

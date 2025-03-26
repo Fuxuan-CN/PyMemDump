@@ -18,6 +18,15 @@ from .exceptions import DumpException, ProcessNotFound
 from ._logger import logger
 from contextlib import contextmanager
 
+def bytes_num_to_unit(num: int) -> str:
+    """将字节数转换为可读的单位"""
+    units = ["B", "KB", "MB", "GB", "TB", "PB"]
+    unit_idx = 0
+    while num >= 1024 and unit_idx < len(units) - 1:
+        num /= 1024
+        unit_idx += 1
+    return f"{num:.2f} {units[unit_idx]}"
+
 def get_permissions(protect: int) -> str:
     """Convert protection flags to readable permissions"""
     permissions = []
@@ -132,12 +141,13 @@ def get_all_memory_addr_range(pid: int) -> list[dict[str, str]]:
             if not kernel32.VirtualQueryEx(h_process, ctypes.c_ulonglong(address), ctypes.byref(mbi), ctypes.sizeof(mbi)):
                 break
 
-            if mbi.State == MEM_COMMIT and mbi.Protect in PAGE_READABLE:
+            if mbi.State == MEM_COMMIT: # 确保只扫描已提交的内存区域
                 mem_permissions = get_permissions(mbi.Protect)
                 memory_addr.append(
                     {
                         "start": hex(mbi.BaseAddress),
                         "end": hex(mbi.BaseAddress + mbi.RegionSize),
+                        "size": bytes_num_to_unit(mbi.RegionSize),
                         "permissions": mem_permissions
                     }
                 )

@@ -5,7 +5,7 @@ from typing import Literal
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
-from .utils import open_process, content_by_fmt
+from .utils import open_process, content_by_fmt, bytes_num_to_unit
 from .constants import (
     PAGE_READABLE, 
     PROCESS_QUERY_INFORMATION, 
@@ -50,7 +50,7 @@ def dump_memory(
                 break
 
             if mbi.State == MEM_COMMIT and mbi.Protect in PAGE_READABLE:
-                logger.info(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} ({mbi.RegionSize} 字节)")
+                logger.info(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} (大小: {bytes_num_to_unit(mbi.RegionSize)})")
                 filename = f"{pid}_{address:016x}-{address + mbi.RegionSize:016x}.bin"
                 output_path = os.path.join(output_dir, filename)
 
@@ -151,7 +151,7 @@ def dump_memory_by_address(
                     mbi.RegionSize = end_address - address
 
                 if address >= start_address and address + mbi.RegionSize <= end_address:
-                    logger.info(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} ({mbi.RegionSize} 字节)")
+                    logger.info(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} (大小: {bytes_num_to_unit(mbi.RegionSize)})")
                     filename = f"{pid}_{address:016x}-{address + mbi.RegionSize:016x}.bin"
                     output_path = os.path.join(output_dir, filename)
 
@@ -188,7 +188,9 @@ def dump_memory_by_address(
                     logger.info(f"导出成功: {filename}")
                 else:
                     logger.warning(f"内存区域 {address:016x}-{address + mbi.RegionSize:016x} 不在指定范围内，跳过。")
-
+            else:
+                logger.warning(f"内存区域 {address:016x}-{address + mbi.RegionSize:016x} 不可读，跳过。")
+                
             address += mbi.RegionSize
 
         # 关闭进度条
