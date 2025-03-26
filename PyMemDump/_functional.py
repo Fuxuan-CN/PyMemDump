@@ -131,17 +131,17 @@ def dump_memory_by_address(
         The specified address range must be within the process's memory address space.
         The output directory must exist and be writable.
     """
+    if start_address > end_address:
+        raise ValueError("Start address must be less than or equal to end address.")
+
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
     with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
-
         mbi = MEMORY_BASIC_INFORMATION()
         address = start_address
 
-        # 启动进度条
-        mem_progress.start()
-
+        # 验证地址范围是否在进程内存地址空间内
         while True:
             if not kernel32.VirtualQueryEx(h_process, ctypes.c_ulonglong(address), ctypes.byref(mbi), ctypes.sizeof(mbi)):
                 break
@@ -150,42 +150,49 @@ def dump_memory_by_address(
                 if address + mbi.RegionSize > end_address:
                     mbi.RegionSize = end_address - address
 
-                logger.info(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} ({mbi.RegionSize} 字节)")
-                filename = f"{pid}_{address:016x}-{address + mbi.RegionSize:016x}.bin"
-                output_path = os.path.join(output_dir, filename)
+                if address >= start_address and address + mbi.RegionSize <= end_address:
+                    logger.info(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} ({mbi.RegionSize} 字节)")
+                    filename = f"{pid}_{address:016x}-{address + mbi.RegionSize:016x}.bin"
+                    output_path = os.path.join(output_dir, filename)
 
-                with open(output_path, "wb") as f:
-                    remaining_size = mbi.RegionSize
-                    # 分块进度任务
-                    chunk_task = mem_progress.add_task("[bold cyan]导出内存", total=mbi.RegionSize, filename=filename)
+                    with open(output_path, "wb") as f:
+                        remaining_size = mbi.RegionSize
+                        # 分块进度任务
+                        chunk_task = mem_progress.add_task("[bold cyan]导出内存", total=mbi.RegionSize, filename=filename)
 
-                    offset = 0
+                        offset = 0
 
-                    while remaining_size > 0:
-                        chunk_size = min(remaining_size, BLOCK_SIZE)
-                        buffer = (ctypes.c_byte * chunk_size)()
-                        bytes_read = ctypes.c_size_t()
+                        while remaining_size > 0:
+                            chunk_size = min(remaining_size, BLOCK_SIZE)
+                            buffer = (ctypes.c_byte * chunk_size)()
+                            bytes_read = ctypes.c_size_t()
 
-                        if kernel32.ReadProcessMemory(
-                            h_process, ctypes.c_ulonglong(address + offset), buffer, chunk_size, ctypes.byref(bytes_read)
-                        ):
-                            # 将 ctypes.c_byte 数组转换为字节对象
-                            data = content_by_fmt(buffer.raw[:bytes_read.value], content_fmt, encoding)
-                            f.write(data)
-                            offset += chunk_size
-                            remaining_size -= chunk_size
-                            mem_progress.update(chunk_task, advance=chunk_size)  # 更新分块进度
-                        else:
-                            if not ignore_read_error:
-                                raise DumpException(ctypes.WinError(ctypes.get_last_error()))
+                            if kernel32.ReadProcessMemory(
+                                h_process, ctypes.c_ulonglong(address + offset), buffer, chunk_size, ctypes.byref(bytes_read)
+                            ):
+                                # 将 ctypes.c_byte 数组转换为字节对象
+                                data = content_by_fmt(buffer.raw[:bytes_read.value], content_fmt, encoding)
+                                f.write(data)
+                                offset += chunk_size
+                                remaining_size -= chunk_size
+                                mem_progress.update(chunk_task, advance=chunk_size)  # 更新分块进度
                             else:
-                                logger.error(f"读取内存失败: {filename}")
-                                break
+                                if not ignore_read_error:
+                                    raise DumpException(ctypes.WinError(ctypes.get_last_error()))
+                                else:
+                                    logger.error(f"读取内存失败: {filename}")
+                                    break
 
-                    mem_progress.remove_task(chunk_task)  # 移除完成的分块任务
+                        mem_progress.remove_task(chunk_task)  # 移除完成的分块任务
 
-                logger.info(f"导出成功: {filename}")
-                break
+                    logger.info(f"导出成功: {filename}")
+                else:
+                    logger.warning(f"内存区域 {address:016x}-{address + mbi.RegionSize:016x} 不在指定范围内，跳过。")
+
+            address += mbi.RegionSize
+
+        # 关闭进度条
+        mem_progress.stop()
 
 def read_memory_region(h_process, address, size):
     """读取指定内存区域"""

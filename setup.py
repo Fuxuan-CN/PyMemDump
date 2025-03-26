@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="PyMemDump",
-    version="0.1.7.post3",
+    version="0.1.8",
     packages=find_packages(),
     author="Fuxuan-CN",
     author_email="fuxuan001@foxmail.com",
