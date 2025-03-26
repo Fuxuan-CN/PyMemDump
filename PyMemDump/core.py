@@ -212,7 +212,7 @@ class MemoryDumper:
             language (str): language to use for the tool, default is zh_CN.
         """
         parser = argparse.ArgumentParser(description=get_text(language, "tool_desc"))
-        parser.add_argument("--scan_addr", action="store_true", help=get_text(language, "scan_addr"))
+        parser.add_argument("-sc", "--scan_addr", action="store_true", help=get_text(language, "scan_addr"))
         parser.add_argument("--concurrent", action="store_true", help=get_text(language, "concurrent"))
         parser.add_argument("-w", "--workers", type=int, help=get_text(language, "workers"), default=CPU_COUNT)
         parser.add_argument("-p", "--process", type=Process(), help=get_text(language, "process"), required=True)

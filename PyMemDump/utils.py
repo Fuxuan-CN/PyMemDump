@@ -8,13 +8,26 @@ from .constants import (
     PAGE_READABLE,
     PROCESS_QUERY_INFORMATION,
     PROCESS_VM_READ,
-    MEM_COMMIT
+    MEM_COMMIT,
+    PAGE_EXECUTE,
+    PAGE_WRITEABLE
 )
 from typing import Literal
 from .kernelCore import kernel32
 from .exceptions import DumpException, ProcessNotFound
 from ._logger import logger
 from contextlib import contextmanager
+
+def get_permissions(protect: int) -> str:
+    """Convert protection flags to readable permissions"""
+    permissions = []
+    if protect in PAGE_READABLE:
+        permissions.append("readable")
+    if protect in PAGE_WRITEABLE:
+        permissions.append("writeable")
+    if protect == PAGE_EXECUTE:
+        permissions.append("executable")
+    return ", ".join(permissions) if permissions else "none"
 
 def suspend_process(pid: int):
     """ 暂停目标进程中的所有线程 """
@@ -108,7 +121,7 @@ def get_total_memory_size(pid: int) -> int:
         kernel32.CloseHandle(h_process)
         return total_size
 
-def get_all_memory_addr_range(pid: int) -> list[tuple[str, str]]:
+def get_all_memory_addr_range(pid: int) -> list[dict[str, str]]:
     """获取所有可读内存区域的起始地址和结束地址"""
     with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
         mbi = MEMORY_BASIC_INFORMATION()
@@ -120,13 +133,17 @@ def get_all_memory_addr_range(pid: int) -> list[tuple[str, str]]:
                 break
 
             if mbi.State == MEM_COMMIT and mbi.Protect in PAGE_READABLE:
-                memory_addr.append((address, address + mbi.RegionSize))
+                mem_permissions = get_permissions(mbi.Protect)
+                memory_addr.append(
+                    {
+                        "start": hex(mbi.BaseAddress),
+                        "end": hex(mbi.BaseAddress + mbi.RegionSize),
+                        "permissions": mem_permissions
+                    }
+                )
 
             address += mbi.RegionSize
-
-        kernel32.CloseHandle(h_process)
-        # 转换为16进制字符串
-        memory_addr = [(hex(start), hex(end)) for start, end in memory_addr]
+            
         return memory_addr
     
 def content_by_fmt(content: bytes, content_fmt: Literal["hex", "bin", "ascii"] = "bin", encoding: str = "utf-8") -> bytes | str:
