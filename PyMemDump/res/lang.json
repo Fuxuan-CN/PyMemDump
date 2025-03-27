@@ -16,7 +16,9 @@
             "end-address" : "End address of the memory range to dump.",
             "content-fmt": "Format of the content to dump. Can be one of the following: {hex, ascii, bytes}.",
             "encoding": "Encoding to use when decoding bytes to ASCII. Defaults to UTF-8.",
-            "verbose": "Enables verbose output."
+            "verbose": "Enables verbose output.",
+            "search": "search the memory addr with critical bytes.",
+            "search_opt": "output the search result to a file."
         },
         "zh_CN": {
             "tool_desc": "Python 内存转储工具。",
@@ -31,7 +33,9 @@
             "end-address" : "转储内存的结束地址。(需要启用 by_addr 参数，这可以再命令行中通过 --by_addr 来启用)",
             "content-fmt": "转储内容的格式。可选格式：{hex, ascii, bytes}。",
             "encoding": "用于解码字节到 ASCII 的编码。默认为 UTF-8。",
-            "verbose": "输出详细信息。"
+            "verbose": "输出详细信息。",
+            "search": "根据关键字节搜索内存地址。",
+            "search_opt": "将搜索结果输出到文件。"
         },
         "fr_FR": {
             "tool_desc": "Outil de vidage de mémoire pour processus Python.",
@@ -46,7 +50,9 @@
             "end-address": "Adresse de fin de la plage de mémoire à vider.",
             "content-fmt": "Format du contenu à vider. Peut être l'un des suivants : {hex, ascii, bytes}.",
             "encoding": "Encodage à utiliser pour décoder les octets en ASCII. Par défaut : UTF-8.",
-            "verbose": "Active la sortie détaillée."
+            "verbose": "Active la sortie détaillée.",
+            "search": "recherche les adresses mémoire avec des octets critiques.",
+            "search_opt": "enregistre le résultat de la recherche dans un fichier."
         }
     }
 }

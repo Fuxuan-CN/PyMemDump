@@ -5,7 +5,13 @@ from typing import Literal
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
-from .utils import open_process, content_by_fmt, bytes_num_to_unit
+from .utils import (
+    open_process,
+    content_by_fmt, 
+    bytes_num_to_unit,
+    kmp_search,
+    get_total_memory_chunk_num
+)
 from .constants import (
     PAGE_READABLE, 
     PROCESS_QUERY_INFORMATION, 
@@ -92,7 +98,6 @@ def dump_memory(
 
         # 关闭进度条
         mem_progress.stop()
-        kernel32.CloseHandle(h_process)
 
 def dump_memory_by_address(
     pid: int, 
@@ -287,9 +292,52 @@ def concurrent_dump_memory(
 
         logger.info(f"内存导出完成，失败任务数: {failed_tasks}")
 
-@FutureFeature("v0.2.0")
-def search_addr_by_bytes(pid: int, patten: list[int] | bytes | bytearray | memoryview) -> dict[str, list[int]]:
+@FutureFeature("v0.2.0", available_now=True, ignore=True)
+def search_addr_by_bytes(pid: int, pattern: list[int] | bytes | bytearray | memoryview) -> dict[str, list[str]]:
     """
     搜索指定字节序列的内存地址
     """
-    pass
+    mem_progress.start()
+    # 添加搜索任务
+    total_memory_size = get_total_memory_chunk_num(pid) 
+    total_task = mem_progress.add_task("[bold yellow]搜索内存", total=total_memory_size, filename=f"进程: {pid}")
+
+    logger.info(f"搜索内存: 进程: {pid}, 字节序列: {pattern}")
+
+    if isinstance(pattern, list):
+        pattern = bytes(pattern)
+    elif isinstance(pattern, (bytearray, memoryview)):
+        pattern = bytes(pattern)
+
+    found_addresses = {"addresses": []}
+
+    with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
+        mbi = MEMORY_BASIC_INFORMATION()
+        address = 0
+
+        while True:
+            if not kernel32.VirtualQueryEx(h_process, ctypes.c_ulonglong(address), ctypes.byref(mbi), ctypes.sizeof(mbi)):
+                break
+
+            if mbi.State == MEM_COMMIT:
+                region_size = mbi.RegionSize
+                buffer = ctypes.create_string_buffer(region_size)
+                bytes_read = ctypes.c_size_t()
+
+                if kernel32.ReadProcessMemory(h_process, ctypes.c_ulonglong(mbi.BaseAddress), buffer, region_size, ctypes.byref(bytes_read)):
+                    region_data = ctypes.string_at(ctypes.addressof(buffer), bytes_read.value)
+                    positions = kmp_search(region_data, pattern)
+                    for pos in positions:
+                        found_addresses["addresses"].append(hex(mbi.BaseAddress + pos))
+                        logger.debug(f"找到内存地址: {hex(mbi.BaseAddress + pos)}")
+                else:
+                    logger.warning(f"读取内存失败: {hex(mbi.BaseAddress)}-{hex(mbi.BaseAddress + mbi.RegionSize)}")
+
+                # 更新进度条
+                mem_progress.update(total_task, advance=region_size)
+
+            address += mbi.RegionSize
+
+        mem_progress.stop()  # 关闭进度条
+
+    return found_addresses

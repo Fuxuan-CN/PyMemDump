@@ -6,6 +6,10 @@ PROCESS_QUERY_INFORMATION = 0x0400
 """ 进程权限：查询信息 """
 PROCESS_VM_READ = 0x0010
 """ 进程权限：读取内存 """
+PROCESS_VM_WRITE = 0x0020
+""" 进程权限：写入内存 """
+PROCESS_VM_OPERATION = 0x0008
+""" 进程权限：操作内存 """
 MEM_COMMIT = 0x00001000
 """ 内存权限：提交 """
 PAGE_READABLE = (0x02, 0x04, 0x08, 0x20, 0x40)  # 可读的内存保护标志

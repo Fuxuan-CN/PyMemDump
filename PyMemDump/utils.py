@@ -18,6 +18,42 @@ from .exceptions import DumpException, ProcessNotFound
 from ._logger import logger
 from contextlib import contextmanager
 
+def build_partial_match_table(pattern: bytes) -> list[int]:
+    """
+    构建KMP算法的部分匹配表
+    """
+    table = [0] * len(pattern)
+    j = 0  # 表示前缀的长度
+    for i in range(1, len(pattern)):
+        while j > 0 and pattern[i] != pattern[j]:
+            j = table[j - 1]
+        if pattern[i] == pattern[j]:
+            j += 1
+        table[i] = j
+    return table
+
+def kmp_search(data: bytes, pattern: bytes) -> list[int]:
+    """
+    使用KMP算法在数据中搜索模式串
+    """
+    if not pattern:
+        return []
+
+    table = build_partial_match_table(pattern)
+    positions = []
+    j = 0  # 表示模式串的当前匹配位置
+
+    for i in range(len(data)):
+        while j > 0 and data[i] != pattern[j]:
+            j = table[j - 1]
+        if data[i] == pattern[j]:
+            j += 1
+        if j == len(pattern):
+            positions.append(i - j + 1)
+            j = table[j - 1]
+
+    return positions
+
 def bytes_num_to_unit(num: int) -> str:
     """将字节数转换为可读的单位"""
     units = ["B", "KB", "MB", "GB", "TB", "PB"]
@@ -111,7 +147,7 @@ def is_process_running(pid: int) -> bool:
     except (psutil.NoSuchProcess , psutil.AccessDenied):
         return False
     
-def get_total_memory_size(pid: int) -> int:
+def get_total_memory_chunk_num(pid: int) -> int:
     """获取所有可读内存区域的总大小"""
     with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
         mbi = MEMORY_BASIC_INFORMATION()
@@ -127,7 +163,6 @@ def get_total_memory_size(pid: int) -> int:
 
             address += mbi.RegionSize
 
-        kernel32.CloseHandle(h_process)
         return total_size
 
 def get_all_memory_addr_range(pid: int) -> list[dict[str, str]]:

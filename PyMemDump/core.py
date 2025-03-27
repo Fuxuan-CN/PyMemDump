@@ -11,7 +11,7 @@ from datetime import datetime
 from .utils import (
     get_pid_with_name, 
     is_process_running, 
-    get_total_memory_size, 
+    get_total_memory_chunk_num, 
     get_all_memory_addr_range,
     suspend_process,
     resume_process
@@ -19,7 +19,8 @@ from .utils import (
 from ._functional import (
     dump_memory,
     dump_memory_by_address,
-    concurrent_dump_memory
+    concurrent_dump_memory,
+    search_addr_by_bytes
 )
 from ._types import (
     Process,
@@ -164,8 +165,8 @@ class MemoryDumper:
                 if not self._is_process_running():
                     raise ProcessNotRunning(f"Process {self.process_name or self.pid} is not running.")
                 
-                # get the total memory size of the process
-                self.process_mem_size = get_total_memory_size(self.pid)
+                # get the total memory chunk number of the process
+                self.process_mem_size = get_total_memory_chunk_num(self.pid)
 
                 dump_memory(self.pid, self.save_path, self.process_mem_size, self.ignore_read_error)
         except KeyboardInterrupt:
@@ -207,6 +208,37 @@ class MemoryDumper:
         finally:
             self._resume_process()
 
+    def search(self, opt: bool, pattern: list[int] | bytes | bytearray | memoryview) -> dict[str, list[str]]:
+        """
+        Search for a pattern in the memory of the target process.
+
+        Args:
+            pattern (list[int] | bytes | bytearray | memoryview): Pattern to search for.
+
+        Returns:
+            dict[str, list[str]]: A dictionary containing the addresses of the pattern and its corresponding values.
+        """
+        self._stop_process()
+        try:
+            if not self._is_process_running():
+                raise ProcessNotRunning(f"Process {self.process_name or self.pid} is not running.")
+            
+            result = {
+                "pid": self.pid,
+                "process_name": self.process_name,
+                "pattern": hex(pattern),
+                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "matched_results": search_addr_by_bytes(self.pid, pattern)
+            }
+            if opt:
+                with open(f"{self.pid}_search_result.json", "w") as f:
+                    json.dump(result, f, indent=4, ensure_ascii=False)
+            return result
+        except KeyboardInterrupt:
+            logger.critical("Memory dumping interrupted by user.")
+        finally:
+            self._resume_process()
+
     @staticmethod
     def dump_with_args(language: Literal["en_US", "zh_CN"] = "zh_CN") -> None:
         """ Dumps the memory of the process with command line arguments 
@@ -214,19 +246,31 @@ class MemoryDumper:
             language (str): language to use for the tool, default is zh_CN.
         """
         parser = argparse.ArgumentParser(description=get_text(language, "tool_desc"))
-        parser.add_argument("-sc", "--scan_addr", action="store_true", help=get_text(language, "scan_addr"))
+        parser.add_argument("-scan", "--scan_addr", action="store_true", help=get_text(language, "scan_addr"))
         parser.add_argument("--concurrent", action="store_true", help=get_text(language, "concurrent"))
         parser.add_argument("-w", "--workers", type=int, help=get_text(language, "workers"), default=CPU_COUNT)
         parser.add_argument("-p", "--process", type=Process(), help=get_text(language, "process"), required=True)
         parser.add_argument("--by_addr", action="store_true", help=get_text(language, "by_addr"))
         parser.add_argument("-o", "--output", type=str, help=get_text(language, "output"), default="MemDumped")
         parser.add_argument("-i", "--ignore-read-error", action="store_true", help=get_text(language, "ignore-read-error"))
-        parser.add_argument("-s", "--start-address", type=MemAddress(), help=get_text(language, "start-address"))
-        parser.add_argument("-e", "--end-address", type=MemAddress(), help=get_text(language, "end-address"))
-        parser.add_argument("-f", "--content-fmt", type=str, choices=["hex", "bin", "ascii"], default="bin", help=get_text(language, "content-fmt"))
-        parser.add_argument("-c", "--encoding", type=str, default="utf-8", help=get_text(language, "encoding"))
+        parser.add_argument("-start", "--start-address", type=MemAddress(), help=get_text(language, "start-address"))
+        parser.add_argument("-end", "--end-address", type=MemAddress(), help=get_text(language, "end-address"))
+        parser.add_argument("-format", "--content-fmt", type=str, choices=["hex", "bin", "ascii"], default="bin", help=get_text(language, "content-fmt"))
+        parser.add_argument("-enc", "--encoding", type=str, default="utf-8", help=get_text(language, "encoding"))
         parser.add_argument("-vb", "--verbose", action="store_true", help=get_text(language, "verbose"))
+        # 为什么用 MemAddress() ? ，是因为要考虑到用户想输入16进制的数值，但是呢，MemAddress这个已经实现了转换，没有必要继续实现了
+        parser.add_argument("-sch", "--search", type=MemAddress(), nargs="+", help=get_text(language, "search"))
+        parser.add_argument("-sch-opt", "--search-output", action="store_true", help=get_text(language, "search_opt"))
         args = parser.parse_args()
+
+        if args.search is not None:
+            md = MemoryDumper(process_desc=args.process, save_path=args.output, verbose=args.verbose)
+            result = md.search(opt=args.search_output, pattern=args.search)
+            if not args.search_output:
+                print(f"Search pattern: {result['pattern']}")
+                print(f"Search time: {result['time']}")
+                print(f"Search result: {result['matched_results']}")
+            return
 
         if args.scan_addr:
             # 扫描不需要指定格式，导出的时候再指定
