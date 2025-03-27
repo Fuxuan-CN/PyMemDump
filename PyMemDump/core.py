@@ -223,12 +223,14 @@ class MemoryDumper:
             if not self._is_process_running():
                 raise ProcessNotRunning(f"Process {self.process_name or self.pid} is not running.")
             
+            found_addrs = search_addr_by_bytes(self.pid, pattern)
             result = {
                 "pid": self.pid,
                 "process_name": self.process_name,
-                "pattern": hex(pattern),
+                "pattern": [hex(i) for i in pattern],
                 "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "matched_results": search_addr_by_bytes(self.pid, pattern)
+                "total_found": len(found_addrs),
+                "matched_results": found_addrs
             }
             if opt:
                 with open(f"{self.pid}_search_result.json", "w") as f:

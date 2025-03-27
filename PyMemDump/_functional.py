@@ -293,7 +293,7 @@ def concurrent_dump_memory(
         logger.info(f"内存导出完成，失败任务数: {failed_tasks}")
 
 @FutureFeature("v0.2.0", available_now=True, ignore=True)
-def search_addr_by_bytes(pid: int, pattern: list[int] | bytes | bytearray | memoryview) -> dict[str, list[str]]:
+def search_addr_by_bytes(pid: int, pattern: list[int] | bytes | bytearray | memoryview) -> list[str]:
     """
     搜索指定字节序列的内存地址
     """
@@ -309,7 +309,7 @@ def search_addr_by_bytes(pid: int, pattern: list[int] | bytes | bytearray | memo
     elif isinstance(pattern, (bytearray, memoryview)):
         pattern = bytes(pattern)
 
-    found_addresses = {"addresses": []}
+    found_addresses = []
 
     with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
         mbi = MEMORY_BASIC_INFORMATION()
@@ -328,7 +328,7 @@ def search_addr_by_bytes(pid: int, pattern: list[int] | bytes | bytearray | memo
                     region_data = ctypes.string_at(ctypes.addressof(buffer), bytes_read.value)
                     positions = kmp_search(region_data, pattern)
                     for pos in positions:
-                        found_addresses["addresses"].append(hex(mbi.BaseAddress + pos))
+                        found_addresses.append(hex(mbi.BaseAddress + pos))
                         logger.debug(f"找到内存地址: {hex(mbi.BaseAddress + pos)}")
                 else:
                     logger.warning(f"读取内存失败: {hex(mbi.BaseAddress)}-{hex(mbi.BaseAddress + mbi.RegionSize)}")
