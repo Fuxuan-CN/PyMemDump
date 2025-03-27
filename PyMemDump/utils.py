@@ -13,6 +13,8 @@ from .constants import (
     PAGE_WRITEABLE
 )
 from typing import Literal
+from rich.progress import Progress
+from rich.progress import TaskID
 from .kernelCore import kernel32
 from .exceptions import DumpException, ProcessNotFound
 from ._logger import logger
@@ -206,6 +208,19 @@ def content_by_fmt(content: bytes, content_fmt: Literal["hex", "bin", "ascii"] =
         return ascii_data.encode(encoding=encoding)
     else:
         raise ValueError(f"未知格式: {content_fmt}")
+    
+def search_memory_region(h_process: int, base_address: int, region_size: int, pattern: bytes, progress: Progress, task: TaskID) -> list[int]:
+    """搜索单个内存区域"""
+    buffer = ctypes.create_string_buffer(region_size)
+    bytes_read = ctypes.c_size_t()
+    if kernel32.ReadProcessMemory(h_process, ctypes.c_ulonglong(base_address), buffer, region_size, ctypes.byref(bytes_read)):
+        region_data = ctypes.string_at(ctypes.addressof(buffer), bytes_read.value)
+        positions = kmp_search(region_data, pattern)
+        progress.update(task, advance=region_size)
+        return [(base_address + pos) for pos in positions]
+    else:
+        progress.update(task, advance=region_size)
+        return []
 
 if __name__ == "__main__":
     pass

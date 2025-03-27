@@ -223,7 +223,7 @@ class MemoryDumper:
             if not self._is_process_running():
                 raise ProcessNotRunning(f"Process {self.process_name or self.pid} is not running.")
             
-            found_addrs = search_addr_by_bytes(self.pid, pattern)
+            found_addrs = search_addr_by_bytes(self.pid, pattern, self.concurrent, self.workers)
             result = {
                 "pid": self.pid,
                 "process_name": self.process_name,

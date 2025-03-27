@@ -10,6 +10,7 @@ from .utils import (
     content_by_fmt, 
     bytes_num_to_unit,
     kmp_search,
+    search_memory_region,
     get_total_memory_chunk_num
 )
 from .constants import (
@@ -17,7 +18,8 @@ from .constants import (
     PROCESS_QUERY_INFORMATION, 
     PROCESS_VM_READ, 
     MEM_COMMIT, 
-    BLOCK_SIZE
+    BLOCK_SIZE,
+    CPU_COUNT
 )
 from .structs import (
     MEMORY_BASIC_INFORMATION
@@ -293,10 +295,13 @@ def concurrent_dump_memory(
         logger.info(f"内存导出完成，失败任务数: {failed_tasks}")
 
 @FutureFeature("v0.2.0", available_now=True, ignore=True)
-def search_addr_by_bytes(pid: int, pattern: list[int] | bytes | bytearray | memoryview) -> list[str]:
+def search_addr_by_bytes(pid: int, pattern: list[int] | bytes | bytearray | memoryview, concurrent: bool = False, workers: int = None) -> list[str]:
     """
     搜索指定字节序列的内存地址
     """
+    if concurrent:
+        return search_addr_by_bytes_concurrent(pid, pattern, workers)
+    
     mem_progress.start()
     # 添加搜索任务
     total_memory_size = get_total_memory_chunk_num(pid) 
@@ -341,3 +346,41 @@ def search_addr_by_bytes(pid: int, pattern: list[int] | bytes | bytearray | memo
         mem_progress.stop()  # 关闭进度条
 
     return found_addresses
+
+def search_addr_by_bytes_concurrent(pid: int, pattern: list[int] | bytes | bytearray | memoryview, workers: int = CPU_COUNT) -> list[str]:
+    """
+    并发的搜索指定字节序列的内存地址
+    """
+    mem_progress.start()
+    total_memory_size = get_total_memory_chunk_num(pid)
+    total_task = mem_progress.add_task("[bold yellow]搜索内存", total=total_memory_size, filename=f"进程: {pid}")
+
+    logger.info(f"并发搜索内存: 进程: {pid}, 字节序列: {pattern}")
+
+    if isinstance(pattern, list):
+        pattern = bytes(pattern)
+    elif isinstance(pattern, (bytearray, memoryview)):
+        pattern = bytes(pattern)
+
+    found_addresses = []
+
+    with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
+        mbi = MEMORY_BASIC_INFORMATION()
+        address = 0
+        regions = []
+
+        while True:
+            if not kernel32.VirtualQueryEx(h_process, ctypes.c_ulonglong(address), ctypes.byref(mbi), ctypes.sizeof(mbi)):
+                break
+
+            if mbi.State == MEM_COMMIT:
+                regions.append((mbi.BaseAddress, mbi.RegionSize))
+            address += mbi.RegionSize
+
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [executor.submit(search_memory_region, h_process, base, size, pattern, mem_progress, total_task) for base, size in regions]
+            for future in as_completed(futures):
+                found_addresses.extend(future.result())
+
+    mem_progress.stop()
+    return [hex(addr) for addr in found_addresses]
