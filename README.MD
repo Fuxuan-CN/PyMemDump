@@ -28,7 +28,7 @@ pip install PyMemDump
 1. 克隆仓库：
 
    ```bash
-   git clone https://github.com/yourusername/PyMemDump.git
+   git clone https://github.com/Fuxuan-CN/PyMemDump.git
    ```
 
 2. 进入目录并安装依赖：
