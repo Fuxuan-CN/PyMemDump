@@ -345,7 +345,8 @@ class MemoryDumper:
                 )
             md.dump_memory_by_address(args.start_address, args.end_address)
             return
-        else:
+        
+        if args.process:
             md = MemoryDumper(
                  process_desc=args.process, 
                  save_path=args.output, 
