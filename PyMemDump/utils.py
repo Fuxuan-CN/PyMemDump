@@ -16,7 +16,7 @@ from typing import Literal
 from rich.progress import Progress
 from rich.progress import TaskID
 from .kernelCore import kernel32
-from .exceptions import DumpException, ProcessNotFound
+from .exceptions import DumpException
 from ._logger import logger
 from contextlib import contextmanager
 
@@ -134,12 +134,13 @@ def open_process(pid, access):
     finally:
         kernel32.CloseHandle(h_process)
 
-def get_pid_with_name(name: str) -> int:
+def get_pid_with_name(name: str) -> list[int]:
     """ find the pid of a process with a given name """
+    result = []
     for proc in psutil.process_iter():
         if proc.name() == name:
-            return proc.pid
-    raise ProcessNotFound(f"进程 {name} 不存在")
+            result.append(proc.pid)
+    return result
 
 def is_process_running(pid: int) -> bool:
     """ check if a process with a given pid is running """

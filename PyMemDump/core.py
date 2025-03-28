@@ -3,7 +3,7 @@ import json
 from typing import Literal
 from .i18n import get_text
 from .constants import CPU_COUNT
-from .exceptions import ProcessNotRunning
+from .exceptions import ProcessNotRunning, ProcessNotFound
 from ._logger import logger
 import argparse
 import logging
@@ -88,16 +88,17 @@ class MemoryDumper:
         """ content format to save the memory dump """
         self.encoding = encoding
         """ encoding to save the memory dump """
+        self.verbose = verbose
+        """ verbose flag """
+        self.pid = self._extra_process_id(self.process_target)
         if not verbose:
             logging.disable() # disable logging if verbose is False
-
-        logger.info("MemoryDumper initialized.")
-        self.pid = self._extra_process_id(self.process_target)
+        logger.debug("MemoryDumper 初始化完成")
 
     def _is_process_running(self) -> bool:
         """ Checks if the process is running """
         if self.pid is None:
-            logger.warning("Process ID is not set.")
+            logger.warning("pid没有设置")
             return False
         return is_process_running(self.pid)
     
@@ -129,7 +130,7 @@ class MemoryDumper:
         if to_json:
             with open(f"{self.process_name or self.pid}_all_addresses.json", "w") as f:
                 json.dump(data_addrs, f, indent=4)
-        logger.info(f"Memory addresses of process {self.process_target} generated.")
+        logger.info(f"生成了进程为 {self.process_name or self.pid} 的全部内存地址信息。")
         self._resume_process()
         return data_addrs
     
@@ -143,15 +144,35 @@ class MemoryDumper:
         Returns:
             int: Process ID of the target process.
         """
-        if isinstance(desc, int):
-            return desc
-        elif isinstance(desc, str):
-            pid = get_pid_with_name(desc)
-            self.process_name = desc
-            logger.info(f"Process name: {desc}, PID: {pid}")
-            return pid
-        else:
-            raise TypeError("expected int or str for process_desc, such as pid or process name.")
+        try:
+            if isinstance(desc, int):
+                return desc
+            elif isinstance(desc, str):
+                pids = get_pid_with_name(desc)
+                self.process_name = desc
+                if len(pids) > 1:
+                    logger.warning(f"存在多个进程名为 {desc} 的进程, 请输入其 PID 来指定目标进程.")
+                    if not self.verbose:
+                        logger.warning("由于 verbose 为 False，再此日志提示进程选择后续将不在显示运行时日志。")
+                    logger.info(f"下列为所有进程名为 {desc} 的进程 PID: ")
+                    for i, pid in enumerate(pids):
+                        logger.info(f"{desc}({pid})")
+                    while True:
+                        usr_input = int(input("发现多个进程名，请输入指定的进程 PID: "))
+                        if usr_input in pids:
+                            return usr_input
+                        else:
+                            logger.error(f"输入的 PID {usr_input} 不是有效的进程 ID，请重新输入。")
+                elif len(pids) == 1:
+                    return pids[0]
+                else:
+                    raise ProcessNotFound(f"未找到进程名为 {desc} 的进程.")
+            else:
+                raise TypeError("expected int or str for process_desc, such as pid or process name.")
+        except KeyboardInterrupt:
+            print()  # 美观日志输出，避免日志挤在一起
+            logger.critical("用户取消操作.")
+            exit(0)
 
     def dump(self) -> None:
         """ Dumps the memory of the process """
@@ -170,7 +191,7 @@ class MemoryDumper:
 
                 dump_memory(self.pid, self.save_path, self.process_mem_size, self.ignore_read_error)
         except KeyboardInterrupt:
-            logger.critical("Memory dumping interrupted by user.")
+            logger.critical("用户停止了内存转储.")
         finally:
             self._resume_process()
 
@@ -189,7 +210,7 @@ class MemoryDumper:
             
             dump_memory_by_address(self.pid, self.save_path, start_address, end_address, self.ignore_read_error, content_fmt=self.data_fmt, encoding=self.encoding)
         except KeyboardInterrupt:
-            logger.critical("Memory dumping interrupted by user.")
+            logger.critical("用户停止了内存转储.")
         finally:
             self._resume_process()
 
@@ -197,14 +218,14 @@ class MemoryDumper:
         """ Dumps the memory of the target process concurrently """
         try:
             self._stop_process()
-            logger.info(f"Dumping memory of process {self.process_target} to {self.save_path} concurrently.")
+            logger.info(f"并发的转储进程 {self.process_target} ，并保存到： {self.save_path}")
 
             if not self._is_process_running():
                 raise ProcessNotRunning(f"Process {self.process_name or self.pid} is not running.")
             
             concurrent_dump_memory(self.pid, self.save_path, self.ignore_read_error, workers=workers, content_fmt=self.data_fmt, encoding=self.encoding)
         except KeyboardInterrupt:
-            logger.critical("Memory dumping interrupted by user.")
+            logger.critical("用户停止了内存转储.")
         finally:
             self._resume_process()
 
@@ -237,7 +258,7 @@ class MemoryDumper:
                     json.dump(result, f, indent=4, ensure_ascii=False)
             return result
         except KeyboardInterrupt:
-            logger.critical("Memory dumping interrupted by user.")
+            logger.critical("用户停止了内存地址搜索")
         finally:
             self._resume_process()
 
@@ -311,14 +332,7 @@ class MemoryDumper:
                  encoding=args.encoding,
                  verbose=args.verbose
                 )
-            if (isinstance(args.start_address, str) and args.start_address.startswith("0x")) \
-                and (isinstance(args.end_address, str) and args.end_address.startswith("0x")):
-                addr_16_start = int(args.start_address, 16)
-                addr_16_end = int(args.end_address, 16)
-            else:
-                addr_16_start = args.start_address
-                addr_16_end = args.end_address
-            md.dump_memory_by_address(addr_16_start, addr_16_end)
+            md.dump_memory_by_address(args.start_address, args.end_address)
             return
         else:
             md = MemoryDumper(
