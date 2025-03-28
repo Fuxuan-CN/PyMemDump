@@ -94,14 +94,12 @@ def dump_memory(
                             if not ignore_read_error:
                                 raise DumpException(ctypes.WinError(ctypes.get_last_error()))
                             else:
-                                logger.error(f"读取内存失败: {filename}")
+                                logger.warning(f"内存区域: {addr} - {next_addr} 不可读，跳过。")
                                 break
 
                     mem_progress.remove_task(chunk_task)  # 移除完成的分块任务
 
                 logger.info(f"导出成功: {filename}")
-            else:
-                logger.warning(f"内存区域: {addr} - {next_addr} 不可读，跳过。")
 
             address += mbi.RegionSize
 
@@ -197,7 +195,7 @@ def dump_memory_by_address(
                                 if not ignore_read_error:
                                     raise DumpException(ctypes.WinError(ctypes.get_last_error()))
                                 else:
-                                    logger.error(f"读取内存失败: {filename}")
+                                    logger.warning(f"内存区域: {addr} - {next_addr} 不可读，跳过。")
                                     break
 
                         mem_progress.remove_task(chunk_task)  # 移除完成的分块任务
@@ -205,8 +203,6 @@ def dump_memory_by_address(
                     logger.info(f"导出成功: {filename}")
                 else:
                     logger.warning(f"内存区域 {addr}-{next_addr} 不在指定范围内，跳过。")
-            else:
-                logger.warning(f"内存区域 {addr}-{next_addr} 不可读，跳过。")
                 
             address += mbi.RegionSize
 
