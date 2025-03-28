@@ -3,6 +3,47 @@ from typing import Callable, Any
 from functools import wraps
 import warnings
 
+class Issue:
+    """ Decorator for function issues """
+
+    def __init__(self, issue_desc: str, github_issue_link: str = None, ignore: bool = False, plan_to_fix_version: str = None, wait_for_look: bool = False) -> None:
+        self.issue_desc = issue_desc
+        """ the description of the issue """
+        self.ignore = ignore
+        """ ignore the warning message """
+        self.plan_to_fix_version = plan_to_fix_version
+        """ the version to fix the issue """
+        self.wait_for_look = wait_for_look
+        """ wait the user to look at the warning message """
+        self.github_issue_link = github_issue_link
+        """ the link to the github issue """
+
+    def __call__(self, func: Callable) -> Callable:
+        """ decorator call """
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            warn_msg = f"""
+{func.__name__} has an issue: {self.issue_desc}
+"""
+            if self.plan_to_fix_version:
+                warn_msg += f"Plan to fix in version {self.plan_to_fix_version}.\n"
+            if self.github_issue_link:
+                warn_msg += f"For more information, see {self.github_issue_link}.\n"
+            if not self.ignore:
+                warnings.warn(warn_msg, UserWarning)
+            if self.wait_for_look:
+                input("Press Enter to continue or Ctrl+C to skip execution.")
+            return func(*args, **kwargs)
+        return wrapper
+
+    def __repr__(self) -> str:
+        """ return the representation of the decorator """
+        return f"<Issue: {self.issue_desc}, plan_to_fix_version={self.plan_to_fix_version}>"
+
+    def __str__(self) -> str:
+        """ return the string representation of the decorator """
+        return f"Issue: {self.issue_desc}, plan_to_fix_version={self.plan_to_fix_version}"
+
 class FutureFeature:
     """ Decorator for future implementation """
 

@@ -28,7 +28,7 @@ from .kernelCore import kernel32
 from .mem_progress import mem_progress
 from .exceptions import DumpException
 from ._logger import logger
-from .decorators import FutureFeature
+from .decorators import FutureFeature, Issue
 
 def dump_memory(
     pid: int, 
@@ -245,6 +245,7 @@ def dump_memory_region(
             raise
         logger.error(f"读取内存失败: {e}")
 
+@Issue("this function has a bug about bad file descriptor when it's running.", wait_for_look=True)
 def concurrent_dump_memory(
     pid: int, 
     output_dir: str, 
