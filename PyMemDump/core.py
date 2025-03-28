@@ -2,7 +2,7 @@ from ._types import Process_Desc
 import json
 from typing import Literal
 from .i18n import get_text
-from .constants import CPU_COUNT, __VERSION__
+from .constants import CPU_COUNT, __VERSION__, __AUTHOR__
 from .exceptions import ProcessNotRunning, ProcessNotFound
 from ._logger import logger
 import argparse
@@ -102,6 +102,7 @@ class MemoryDumper:
         console = Console()
         console.print(art.text2art("PyMemDump", font="small"), style="bold blue")
         console.print(f"Version: {__VERSION__}", style="bold yellow")
+        console.print(f"Author: {__AUTHOR__}", style="bold magenta")
 
     def _is_process_running(self) -> bool:
         """ Checks if the process is running """
