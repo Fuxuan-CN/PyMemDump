@@ -1,15 +1,15 @@
-from ._types import Process_Desc
+from .utils._types import Process_Desc
 import json
 from typing import Literal
 from .i18n import get_text
-from .constants import CPU_COUNT, __VERSION__, __AUTHOR__
+from .utils.constants import CPU_COUNT, __VERSION__, __AUTHOR__
 from .exceptions import ProcessNotRunning, ProcessNotFound
-from ._logger import logger
+from .utils._logger import logger
 import argparse
 import logging
 import art
 from datetime import datetime
-from .utils import (
+from .utils.utils import (
     get_pid_with_name, 
     is_process_running, 
     get_total_memory_chunk_num, 
@@ -17,13 +17,13 @@ from .utils import (
     suspend_process,
     resume_process
 )
-from ._functional import (
+from .functional.mem_operate import (
     dump_memory,
     dump_memory_by_address,
     concurrent_dump_memory,
     search_addr_by_bytes
 )
-from ._types import (
+from .utils._types import (
     Process,
     MemAddress
 )
@@ -295,11 +295,6 @@ class MemoryDumper:
         parser.add_argument("-sch", "--search", type=MemAddress(), nargs="+", help=get_text(language, "search"))
         parser.add_argument("-sch-opt", "--search-output", action="store_true", help=get_text(language, "search_opt"))
         args = parser.parse_args()
-
-        if args.h or args.help:
-            help_str = parser.format_help()
-            print(help_str)
-            return
 
         if args.search is not None:
             md = MemoryDumper(process_desc=args.process, save_path=args.output, verbose=args.verbose)

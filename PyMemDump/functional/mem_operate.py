@@ -1,4 +1,4 @@
-""" all functionally of PyMemDump , just `in module` invoke"""
+""" the memory operation module """
 import os
 from pathlib import Path
 import ctypes
@@ -6,7 +6,7 @@ from typing import Literal
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import as_completed
-from .utils import (
+from ..utils.utils import (
     open_process,
     content_by_fmt, 
     bytes_num_to_unit,
@@ -14,7 +14,7 @@ from .utils import (
     search_memory_region,
     get_total_memory_chunk_num
 )
-from .constants import (
+from ..utils.constants import (
     PAGE_READABLE, 
     PROCESS_QUERY_INFORMATION, 
     PROCESS_VM_READ, 
@@ -22,14 +22,14 @@ from .constants import (
     BLOCK_SIZE,
     CPU_COUNT
 )
-from .structs import (
+from ..structs import (
     MEMORY_BASIC_INFORMATION
 )
-from .kernelCore import kernel32
-from .mem_progress import mem_progress
-from .exceptions import DumpException
-from ._logger import logger
-from .decorators import FutureFeature, Issue
+from ..kernelCore import kernel32
+from ..utils.mem_progress import mem_progress
+from ..exceptions import DumpException
+from ..utils._logger import logger
+from ..utils.decorators import FutureFeature, Issue
 
 def dump_memory(
     pid: int, 

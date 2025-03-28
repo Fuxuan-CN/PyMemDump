@@ -1,6 +1,6 @@
 import psutil
 import ctypes
-from .structs import (
+from ..structs import (
     MEMORY_BASIC_INFORMATION,
     THREADENTRY32
 )
@@ -15,8 +15,8 @@ from .constants import (
 from typing import Literal
 from rich.progress import Progress
 from rich.progress import TaskID
-from .kernelCore import kernel32
-from .exceptions import DumpException
+from ..kernelCore import kernel32
+from ..exceptions import DumpException
 from ._logger import logger
 from .decorators import FutureFeature
 from contextlib import contextmanager

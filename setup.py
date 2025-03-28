@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from PyMemDump.constants import __VERSION__, __AUTHOR__, __EMAIL__
+from PyMemDump.utils.constants import __VERSION__, __AUTHOR__, __EMAIL__
 
 setup(
     name="PyMemDump",
