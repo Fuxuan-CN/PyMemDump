@@ -1,11 +1,12 @@
 from setuptools import setup, find_packages
+from PyMemDump.constants import __VERSION__, __AUTHOR__, __EMAIL__
 
 setup(
     name="PyMemDump",
-    version="0.2.0.post4",
+    version=__VERSION__,
     packages=find_packages(),
-    author="Fuxuan-CN",
-    author_email="fuxuan001@foxmail.com",
+    author=__AUTHOR__,
+    author_email=__EMAIL__,
     description='A Python library for memory dumping',
     long_description=open('Readme.md','r',encoding='utf-8').read(),
     long_description_content_type='text/markdown',

@@ -2,11 +2,12 @@ from ._types import Process_Desc
 import json
 from typing import Literal
 from .i18n import get_text
-from .constants import CPU_COUNT
+from .constants import CPU_COUNT, __VERSION__
 from .exceptions import ProcessNotRunning, ProcessNotFound
 from ._logger import logger
 import argparse
 import logging
+import art
 from datetime import datetime
 from .utils import (
     get_pid_with_name, 
@@ -26,6 +27,7 @@ from ._types import (
     Process,
     MemAddress
 )
+from rich.console import Console
 
 class MemoryDumper:
     """
@@ -94,6 +96,12 @@ class MemoryDumper:
         if not verbose:
             logging.disable() # disable logging if verbose is False
         logger.debug("MemoryDumper 初始化完成")
+
+    def __print_logo(self) -> None:
+        """ Prints the logo of the program """
+        console = Console()
+        console.print(art.text2art("PyMemDump", font="small"), style="bold blue")
+        console.print(f"Version: {__VERSION__}", style="bold yellow")
 
     def _is_process_running(self) -> bool:
         """ Checks if the process is running """
@@ -262,12 +270,13 @@ class MemoryDumper:
         finally:
             self._resume_process()
 
-    @staticmethod
-    def dump_with_args(language: Literal["en_US", "zh_CN"] = "zh_CN") -> None:
+    @classmethod
+    def dump_with_args(cls, language: Literal["en_US", "zh_CN"] = "zh_CN") -> None:
         """ Dumps the memory of the process with command line arguments 
         Args:
             language (str): language to use for the tool, default is zh_CN.
         """
+        cls.__print_logo(cls)
         parser = argparse.ArgumentParser(description=get_text(language, "tool_desc"))
         parser.add_argument("-scan", "--scan_addr", action="store_true", help=get_text(language, "scan_addr"))
         parser.add_argument("--concurrent", action="store_true", help=get_text(language, "concurrent"))
@@ -285,6 +294,11 @@ class MemoryDumper:
         parser.add_argument("-sch", "--search", type=MemAddress(), nargs="+", help=get_text(language, "search"))
         parser.add_argument("-sch-opt", "--search-output", action="store_true", help=get_text(language, "search_opt"))
         args = parser.parse_args()
+
+        if args.h or args.help:
+            help_str = parser.format_help()
+            print(help_str)
+            return
 
         if args.search is not None:
             md = MemoryDumper(process_desc=args.process, save_path=args.output, verbose=args.verbose)

@@ -1,7 +1,14 @@
 """ all constants of PyMemDump """
 
 import os
+
 # 常量定义
+__VERSION__ = "0.2.0.post5"
+""" 版本号 """
+__AUTHOR__ = "Fuxuan-CN"
+""" 作者 """
+__EMAIL__ = "fuxuan001@foxmail.com"
+""" 邮箱 """
 PROCESS_QUERY_INFORMATION = 0x0400
 """ 进程权限：查询信息 """
 PROCESS_VM_READ = 0x0010
