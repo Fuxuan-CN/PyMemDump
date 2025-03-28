@@ -100,7 +100,7 @@ class MemoryDumper:
     def __print_logo(self) -> None:
         """ Prints the logo of the program """
         console = Console()
-        console.print(art.text2art("PyMemDump", font="small"), style="bold blue")
+        console.print(art.text2art("PyMemDump", font="standard"), style="bold blue")
         console.print(f"Version: {__VERSION__}", style="bold yellow")
         console.print(f"Author: {__AUTHOR__}", style="bold magenta")
 
