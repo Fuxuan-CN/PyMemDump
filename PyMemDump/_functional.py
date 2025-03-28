@@ -1,5 +1,6 @@
 """ all functionally of PyMemDump , just `in module` invoke"""
 import os
+from pathlib import Path
 import ctypes
 from typing import Literal
 import threading
@@ -39,7 +40,7 @@ def dump_memory(
     encoding: str = "utf-8"
 ) -> None:
     """读取并导出内存"""
-    if not os.path.exists(output_dir):
+    if not Path(output_dir).exists():
         os.makedirs(output_dir)
         
     with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
@@ -57,10 +58,14 @@ def dump_memory(
             if not kernel32.VirtualQueryEx(h_process, ctypes.c_ulonglong(address), ctypes.byref(mbi), ctypes.sizeof(mbi)):
                 break
 
-            if mbi.State == MEM_COMMIT and mbi.Protect in PAGE_READABLE:
-                logger.info(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} (大小: {bytes_num_to_unit(mbi.RegionSize)})")
-                filename = f"{pid}_{address:016x}-{address + mbi.RegionSize:016x}.bin"
-                output_path = os.path.join(output_dir, filename)
+            addr = hex(address)
+            next_addr = hex(address + mbi.RegionSize)
+
+            if mbi.State == MEM_COMMIT:
+                
+                logger.info(f"导出内存区域: {addr}-{next_addr} (大小: {bytes_num_to_unit(mbi.RegionSize)})")
+                filename = f"{pid}_{addr}-{next_addr}.bin"
+                output_path = Path(output_dir) / filename
 
                 with open(output_path, "wb") as f:
                     remaining_size = mbi.RegionSize
@@ -95,6 +100,8 @@ def dump_memory(
                     mem_progress.remove_task(chunk_task)  # 移除完成的分块任务
 
                 logger.info(f"导出成功: {filename}")
+            else:
+                logger.warning(f"内存区域: {addr} - {next_addr} 不可读，跳过。")
 
             address += mbi.RegionSize
 
@@ -141,7 +148,7 @@ def dump_memory_by_address(
     if start_address > end_address:
         raise ValueError("Start address must be less than or equal to end address.")
 
-    if not os.path.exists(output_dir):
+    if not Path(output_dir).exists():
         os.makedirs(output_dir)
 
     with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
@@ -153,14 +160,17 @@ def dump_memory_by_address(
             if not kernel32.VirtualQueryEx(h_process, ctypes.c_ulonglong(address), ctypes.byref(mbi), ctypes.sizeof(mbi)):
                 break
 
-            if mbi.State == MEM_COMMIT and mbi.Protect in PAGE_READABLE:
+            addr = hex(address)
+            next_addr = hex(address + mbi.RegionSize)
+
+            if mbi.State == MEM_COMMIT:
                 if address + mbi.RegionSize > end_address:
                     mbi.RegionSize = end_address - address
 
                 if address >= start_address and address + mbi.RegionSize <= end_address:
-                    logger.info(f"导出内存区域: {address:016x}-{address + mbi.RegionSize:016x} (大小: {bytes_num_to_unit(mbi.RegionSize)})")
-                    filename = f"{pid}_{address:016x}-{address + mbi.RegionSize:016x}.bin"
-                    output_path = os.path.join(output_dir, filename)
+                    logger.info(f"导出内存区域: {addr}-{next_addr} (大小: {bytes_num_to_unit(mbi.RegionSize)})")
+                    filename = f"{pid}_{addr}-{next_addr}.bin"
+                    output_path = Path(output_dir) / filename
 
                     with open(output_path, "wb") as f:
                         remaining_size = mbi.RegionSize
@@ -194,9 +204,9 @@ def dump_memory_by_address(
 
                     logger.info(f"导出成功: {filename}")
                 else:
-                    logger.warning(f"内存区域 {address:016x}-{address + mbi.RegionSize:016x} 不在指定范围内，跳过。")
+                    logger.warning(f"内存区域 {addr}-{next_addr} 不在指定范围内，跳过。")
             else:
-                logger.warning(f"内存区域 {address:016x}-{address + mbi.RegionSize:016x} 不可读，跳过。")
+                logger.warning(f"内存区域 {addr}-{next_addr} 不可读，跳过。")
                 
             address += mbi.RegionSize
 
@@ -223,9 +233,11 @@ def dump_memory_region(
     """导出单个内存区域"""
     try:
         with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
-            logger.info(f"导出内存区域: {start_address:016x}-{end_address:016x}")
-            filename = f"{pid}_{start_address:016x}-{end_address:016x}.bin"
-            output_path = os.path.join(output_dir, filename)
+            st = hex(start_address) # start address
+            ed = hex(end_address) # end address
+            logger.info(f"导出内存区域: {st}-{ed}")
+            filename = f"{pid}_{st}-{ed}.bin"
+            output_path = Path(output_dir) / filename
 
             with threading.Lock():
                 with open(output_path, "wb") as f:
@@ -239,7 +251,6 @@ def dump_memory_region(
                         remaining_size -= chunk_size
 
             logger.info(f"导出成功: {filename}")
-            kernel32.CloseHandle(h_process)
     except DumpException as e:
         if not ignore_read_error:
             raise
@@ -257,7 +268,7 @@ def concurrent_dump_memory(
     """
     并发导出内存
     """
-    if not os.path.exists(output_dir):
+    if not Path(output_dir).exists():
         os.makedirs(output_dir)
 
     with open_process(pid, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) as h_process:
