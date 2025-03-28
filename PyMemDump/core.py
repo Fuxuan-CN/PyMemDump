@@ -272,7 +272,7 @@ class MemoryDumper:
             self._resume_process()
 
     @classmethod
-    def dump_with_args(cls, language: Literal["en_US", "zh_CN"] = "zh_CN") -> None:
+    def dump_with_args(cls, language: str = "zh_CN") -> None:
         """ Dumps the memory of the process with command line arguments 
         Args:
             language (str): language to use for the tool, default is zh_CN.
