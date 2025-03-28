@@ -101,7 +101,7 @@ class MemoryDumper:
         """ Prints the logo of the program """
         console = Console()
         console.print(art.text2art("PyMemDump", font="standard"), style="bold blue")
-        console.print(f"Version: {__VERSION__}", style="bold yellow")
+        console.print(f"Version: {__VERSION__}", style="bold cyan")
         console.print(f"Author: {__AUTHOR__}", style="bold magenta")
         console.print(f"{'=' * 100}", style="bold red")
 
