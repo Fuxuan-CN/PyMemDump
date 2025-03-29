@@ -1,6 +1,7 @@
 """ the i18n module, useful for any language support """
 import json
 from pathlib import Path
+from .utils._auto_language import auto_language
 
 LANG_PATH = Path(__file__).parent / "res" / "lang.json"
 
@@ -23,6 +24,10 @@ def get_text(lang_code: str, text_key: str) -> str:
     if text_key not in lang_dict:
         return ""
     return lang_dict[text_key]
+
+def get_text_auto(text_key: str) -> str:
+    """ Get text by auto language and text key """
+    return get_text(auto_language(), text_key)
 
 if __name__ == "__main__":
     print(get_text("zh_CN", "tool_desc"))

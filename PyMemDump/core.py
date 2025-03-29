@@ -4,6 +4,7 @@ import sys
 from typing import Literal
 from .i18n import get_text
 from .utils.constants import CPU_COUNT, __VERSION__, __AUTHOR__
+from .utils.help_beautiful import RichHelpFormatter
 from .exceptions import ProcessNotRunning, ProcessNotFound
 from .utils._logger import logger
 import argparse
@@ -271,7 +272,11 @@ class MemoryDumper:
         cls._print_logo(cls)
 
         # 创建参数解析器
-        parser = argparse.ArgumentParser(description=get_text(language, "tool_desc"))
+        parser = argparse.ArgumentParser(
+            prog=get_text(language, "tool_name"),
+            description=get_text(language, "tool_desc"),
+            formatter_class=RichHelpFormatter,
+        )
         parser.add_argument(
             "-p", "--process", type=Process(), help=get_text(language, "process"), required=True
         )

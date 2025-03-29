@@ -4,6 +4,7 @@
     "Desc": "Python Memory Dumper help string i18n",
     "lang": {
         "en_US": {
+            "tool_name": "PyMemDump",
             "tool_desc": "Dumps the memory of a process.",
             "scan_addr": "Scans all memory addresses of the target process and saves them to a json file.",
             "concurrent": "Dumps the memory of the target process concurrently.",
@@ -21,7 +22,8 @@
             "search_opt": "output the search result to a file."
         },
         "zh_CN": {
-            "tool_desc": "Python 内存转储工具。",
+            "tool_name": "PyMemDump",
+            "tool_desc": "转储系统进程中的内存",
             "scan_addr": "扫描目标进程的所有内存地址并将其保存到 json 文件中。",
             "concurrent": "并发转储目标进程的内存。",
             "workers": "并发工作线程的数量。",
@@ -38,6 +40,7 @@
             "search_opt": "将搜索结果输出到文件。"
         },
         "fr_FR": {
+            "tool_name": "PyMemDump",
             "tool_desc": "Outil de vidage de mémoire pour processus Python.",
             "scan_addr": "Analyse toutes les adresses mémoire du processus cible et les enregistre dans un fichier json.",
             "concurrent": "Vide la mémoire du processus cible de manière concurrente.",
