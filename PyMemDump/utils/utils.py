@@ -133,6 +133,18 @@ def resume_process(pid: int):
         kernel32.CloseHandle(h_snapshot)
 
 @contextmanager
+def process_operation(pid: int):
+    """
+    进程操作上下文管理器
+    """
+    try:
+        suspend_process(pid)
+        yield
+    finally:
+        resume_process(pid)
+
+
+@contextmanager
 def open_process(pid, access):
     h_process = kernel32.OpenProcess(access, False, pid)
     if not h_process:
