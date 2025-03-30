@@ -10,12 +10,23 @@ T = TypeVar('T')
 class WarningBaseDecorator:
     """ Base class for all warning decorators that can decorate both functions and classes """
 
-    def __init__(self, message: str, category: type = UserWarning, ignore: bool = False, wait_for_look: bool = False):
+    def __init__(self, 
+        message: str, 
+        category: type = UserWarning, 
+        ignore: bool = False, 
+        wait_for_look: bool = False,
+        style: str | Style | None = "bold yellow",
+        title_warn_style: str | None = "bold yellow",
+        panel_style: str | Style | None = "bold yellow"
+    ) -> None:
         self.message = message
         self.category = category
         self.ignore = ignore
         self.wait_for_look = wait_for_look
         self.console = Console()
+        self.style = style
+        self.title_warn_style = title_warn_style
+        self.panel_style = panel_style
         self._target = None
 
     def __call__(self, target: T) -> T:
@@ -45,10 +56,10 @@ class WarningBaseDecorator:
     def _warn(self) -> bool:
         """ Issue the warning message """
         if not self.ignore:
-            title = f"[bold yellow] {self.category.__name__} [bold yellow]"
+            title = f"[{self.title_warn_style}] {self.category.__name__} [{self.title_warn_style}]"
             name = self._target.__name__ if hasattr(self._target, "__name__") else self._target.__class__.__name__
-            warn_msg = Text(f"{name} has a warning: \n {self.message}", style="bold yellow")
-            panel = Panel(warn_msg, title=title, style=Style(color="yellow"))
+            warn_msg = Text(f"{name} has a warning: \n {self.message}", style=self.style)
+            panel = Panel(warn_msg, title=title, style=self.panel_style)
             self.console.print(panel)
             
         if self.wait_for_look:
@@ -67,3 +78,11 @@ class WarningBaseDecorator:
     def __str__(self) -> str:
         """ Return the string representation of the decorator """
         return f"{self.__class__.__name__}: {self.message}"
+    
+if __name__ == "__main__":
+
+    @WarningBaseDecorator("This is a warning message", category=UserWarning, ignore=False, wait_for_look=False)
+    def my_func():
+        print("This is my function")
+
+    my_func()
