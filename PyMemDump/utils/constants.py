@@ -3,7 +3,7 @@
 import os
 
 # 常量定义
-__VERSION__ = "0.2.1"
+__VERSION__ = "0.2.1.post1"
 """ 版本号 """
 __AUTHOR__ = "Fuxuan-CN"
 """ 作者 """

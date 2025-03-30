@@ -41,13 +41,17 @@ class WarningBaseDecorator:
     def _warn(self) -> None:
         """ Issue the warning message """
         if not self.ignore:
-            title = f"{self.category.__name__}"
-            warn_msg = Text(self.message, style="bold red")
-            panel = Panel(warn_msg, title=title, style=Style(bgcolor="yellow", color="black"))
+            title = f"[bold yellow] {self.category.__name__} [bold yellow]"
+            name = self.target.__name__ if hasattr(self, "target") else self.target.__class__.__name__
+            warn_msg = Text(f"{name} has a warning: \n {self.message}", style="bold yellow")
+            panel = Panel(warn_msg, title=title, style=Style(color="yellow"))
             self.console.print(panel)
             
         if self.wait_for_look:
-            input("Press Enter to continue or Ctrl+C to skip execution.")
+            try:
+                input("Press Enter to continue or Ctrl+C to skip execution.")
+            except KeyboardInterrupt:
+                print("Skipping execution...")
 
     def __repr__(self) -> str:
         """ Return the representation of the decorator """
