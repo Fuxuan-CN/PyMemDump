@@ -1,17 +1,21 @@
 from typing import Any, TypeVar
 from functools import wraps
-import warnings
+from rich.console import Console
+from rich.panel import Panel
+from rich.style import Style
+from rich.text import Text
 
 T = TypeVar('T')
 
-class BaseDecorator:
-    """ Base class for decorators that can decorate both functions and classes """
+class WarningBaseDecorator:
+    """ Base class for all warning decorators that can decorate both functions and classes """
 
     def __init__(self, message: str, category: type = UserWarning, ignore: bool = False, wait_for_look: bool = False):
         self.message = message
         self.category = category
         self.ignore = ignore
         self.wait_for_look = wait_for_look
+        self.console = Console()
 
     def __call__(self, target: T) -> T:
         """ Decorator call """
@@ -37,7 +41,11 @@ class BaseDecorator:
     def _warn(self) -> None:
         """ Issue the warning message """
         if not self.ignore:
-            warnings.warn(self.message, self.category, stacklevel=3)
+            title = f"{self.category.__name__}"
+            warn_msg = Text(self.message, style="bold red")
+            panel = Panel(warn_msg, title=title, style=Style(bgcolor="yellow", color="black"))
+            self.console.print(panel)
+            
         if self.wait_for_look:
             input("Press Enter to continue or Ctrl+C to skip execution.")
 

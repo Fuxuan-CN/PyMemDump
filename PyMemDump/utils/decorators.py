@@ -1,6 +1,6 @@
-from ._decorator_base import BaseDecorator
+from ._decorator_base import WarningBaseDecorator
 
-class Issue(BaseDecorator):
+class Issue(WarningBaseDecorator):
     """ Decorator for function or class issues """
 
     def __init__(self, issue_desc: str, github_issue_link: str = None, ignore: bool = False, plan_to_fix_version: str = None, wait_for_look: bool = False):
@@ -11,7 +11,7 @@ class Issue(BaseDecorator):
             message += f"For more information, see {github_issue_link}.\n"
         super().__init__(message, UserWarning, ignore, wait_for_look)
 
-class FutureFeature(BaseDecorator):
+class FutureFeature(WarningBaseDecorator):
     """ Decorator for future implementation of functions or classes """
 
     def __init__(self, version_implemented: str, available_now: bool = False, is_a_idea: bool = False, ignore: bool = False, wait_for_look: bool = False):
