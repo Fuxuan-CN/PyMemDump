@@ -24,8 +24,10 @@ class WarningBaseDecorator:
             @wraps(target)
             def wrapper(*args: Any, **kwargs: Any) -> Any:
                 self._target = target
-                self._warn()
-                return target(*args, **kwargs)
+                skip = self._warn()
+                if not skip:
+                    return target(*args, **kwargs)
+                return None
             return wrapper
         elif isinstance(target, type):  # 如果是类
             original_init = target.__init__
@@ -40,7 +42,7 @@ class WarningBaseDecorator:
         else:
             raise TypeError("Unsupported target type for decorator")
 
-    def _warn(self) -> None:
+    def _warn(self) -> bool:
         """ Issue the warning message """
         if not self.ignore:
             title = f"[bold yellow] {self.category.__name__} [bold yellow]"
@@ -52,8 +54,11 @@ class WarningBaseDecorator:
         if self.wait_for_look:
             try:
                 input("Press Enter to continue or Ctrl+C to skip execution.")
+                return False
             except KeyboardInterrupt:
-                print("Skipping execution...")
+                print("\nSkipping execution...")
+                return True
+        return False
 
     def __repr__(self) -> str:
         """ Return the representation of the decorator """
