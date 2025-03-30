@@ -16,12 +16,14 @@ class WarningBaseDecorator:
         self.ignore = ignore
         self.wait_for_look = wait_for_look
         self.console = Console()
+        self._target = None
 
     def __call__(self, target: T) -> T:
         """ Decorator call """
         if callable(target):  # 如果是函数
             @wraps(target)
             def wrapper(*args: Any, **kwargs: Any) -> Any:
+                self._target = target
                 self._warn()
                 return target(*args, **kwargs)
             return wrapper
@@ -42,7 +44,7 @@ class WarningBaseDecorator:
         """ Issue the warning message """
         if not self.ignore:
             title = f"[bold yellow] {self.category.__name__} [bold yellow]"
-            name = self.target.__name__ if hasattr(self, "target") else self.target.__class__.__name__
+            name = self._target.__name__ if hasattr(self._target, "__name__") else self._target.__class__.__name__
             warn_msg = Text(f"{name} has a warning: \n {self.message}", style="bold yellow")
             panel = Panel(warn_msg, title=title, style=Style(color="yellow"))
             self.console.print(panel)
