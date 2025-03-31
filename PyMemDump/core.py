@@ -29,6 +29,7 @@ from .utils._types import (
     MemAddress
 )
 from rich.console import Console
+from .exec_hook import set_exechook
 
 class MemoryDumper:
     """
@@ -71,6 +72,7 @@ class MemoryDumper:
         encoding: str = "utf-8",
         verbose: bool = False
     ) -> None:
+        set_exechook()
         self.process_target = process_desc
         """ user input process description, can be pid or process name """
         self.pid: int = None
