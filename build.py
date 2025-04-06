@@ -44,7 +44,7 @@ class Builder:
 
     def read_commands(self) -> None:
         try:
-            with open(self.command_file, 'r') as f:
+            with open(self.command_file, 'r', encoding='utf-8') as f:
                 for line in f:
                     self.commands.append(line.strip())
         except OSError as e:

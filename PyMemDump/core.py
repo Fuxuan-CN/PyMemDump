@@ -1,6 +1,7 @@
 from .utils._types import Process_Desc
 import json
 import sys
+from rich.panel import Panel
 from typing import Literal
 from .i18n import get_text
 from .utils.constants import CPU_COUNT, __VERSION__, __AUTHOR__
@@ -107,6 +108,26 @@ class MemoryDumper:
         console.print(f"Version: {__VERSION__}", style="bold cyan")
         console.print(f"Author: {__AUTHOR__}", style="bold magenta")
         console.print(f"{'=' * console.width}", style="bold red")
+
+    def __print_search_result(self, result: dict[str, list[str]]) -> None:
+        """ Prints the search result """
+        console = Console()
+        info_str = """
+[bold yellow]进程名[/bold yellow]: {process_name}
+[bold yellow]进程PID[/bold yellow]: {pid}
+[bold yellow]搜索字节串[/bold yellow]: {pattern}
+[bold yellow]搜索时间[/bold yellow]: {time}
+[bold yellow]搜索结果总数[/bold yellow]: {total_found}
+[bold yellow]匹配结果[/bold yellow]: {matched_results}
+"""
+        console.print(Panel(info_str.format(
+            process_name=result["process_name"],
+            pid=result["pid"],
+            pattern=result["pattern"],
+            time=result["time"],
+            total_found=result["total_found"],
+            matched_results=result["matched_results"]
+        ), title="[bold yellow]搜索结果[/bold yellow]"), highlight=True, style="green")
 
     def _is_process_running(self) -> bool:
         """ Checks if the process is running """
@@ -352,9 +373,7 @@ class MemoryDumper:
             if args.search:
                 result = md.search(opt=args.search_output, pattern=args.search)
                 if not args.search_output:
-                    print(f"Search pattern: {result['pattern']}")
-                    print(f"Search time: {result['time']}")
-                    print(f"Search result: {result['matched_results']}")
+                    cls.__print_search_result(cls, result)
             elif args.scan_addr:
                 md.get_all_addr_range(to_json=True)
             elif args.by_addr:
