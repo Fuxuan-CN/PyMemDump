@@ -195,7 +195,9 @@ class MemoryDumper:
                     self.pid, 
                     self.save_path, 
                     self.process_mem_size, 
-                    self.ignore_read_error
+                    self.ignore_read_error,
+                    self.data_fmt,
+                    self.encoding
                 )
 
     def dump_memory_by_address(self, start_address: int, end_address: int) -> None:
