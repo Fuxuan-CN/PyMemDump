@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from ..core import MemoryDumper
 from ..utils.decorators import FutureFeature
 
-@FutureFeature("v0.2.5", is_a_idea=True)
+@FutureFeature("v0.2.5", is_a_idea=True, wait_for_look=True)
 class BaseExtension(ABC):
     """ base interface for all extensions """
 
