@@ -68,6 +68,8 @@ def ExtractException(exctype, value, tb, panel: bool = True, rich_printable: boo
     # 返回异常信息
     if panel:
         _exc_info = Panel(tb_str, title="[bold red]Exception Occurred[/bold red]", border_style="red")
+    else:
+        _exc_info = tb_str
     if rich_printable:
         with console.capture() as capture:
             console.print(_exc_info)
