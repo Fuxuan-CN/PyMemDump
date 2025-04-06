@@ -20,6 +20,7 @@ from ..exceptions import DumpException
 from ._logger import logger
 from .decorators import FutureFeature
 from contextlib import contextmanager
+from functools import lru_cache
 
 @FutureFeature("v0.2.5")
 def get_pid_by_window_title(title: str) -> int:
@@ -28,6 +29,7 @@ def get_pid_by_window_title(title: str) -> int:
     """
     pass
 
+@lru_cache(maxsize=8192)
 def build_partial_match_table(pattern: bytes) -> list[int]:
     """
     构建KMP算法的部分匹配表

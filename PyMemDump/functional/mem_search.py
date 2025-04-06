@@ -1,4 +1,3 @@
-from ..utils.decorators import FutureFeature
 from ..utils.mem_progress import mem_progress
 from ..utils._logger import logger
 from ..utils.utils import (
@@ -18,7 +17,6 @@ from ..utils.constants import (
     PROCESS_VM_READ,
 )
 
-@FutureFeature("v0.2.0", available_now=True, ignore=True)
 def search_addr_by_bytes(pid: int, pattern: list[int] | bytes | bytearray | memoryview, concurrent: bool = False, workers: int = None) -> list[str]:
     """
     搜索指定字节序列的内存地址
