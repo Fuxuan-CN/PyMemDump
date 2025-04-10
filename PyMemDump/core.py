@@ -29,7 +29,7 @@ from .utils._types import (
     Process,
     MemAddress
 )
-from rich.console import Console
+import rich
 from .exec_hook import set_exechook
 
 class MemoryDumper:
@@ -103,15 +103,16 @@ class MemoryDumper:
 
     def _print_logo(self) -> None:
         """ Prints the logo of the program """
-        console = Console()
+        console = rich.get_console()
+        console.highlighter = None
         console.print(art.text2art("PyMemDump", font="standard"), style="bold blue")
         console.print(f"Version: {__VERSION__}", style="bold cyan")
         console.print(f"Author: {__AUTHOR__}", style="bold magenta")
-        console.print(f"{'=' * console.width}", style="bold red")
+        console.print(f"{'=' * console.width}", style="bold")
 
     def __print_search_result(self, result: dict[str, list[str]]) -> None:
         """ Prints the search result """
-        console = Console()
+        console = rich.get_console()
         info_str = """
 [bold yellow]进程名[/bold yellow]: {process_name}
 [bold yellow]进程PID[/bold yellow]: {pid}

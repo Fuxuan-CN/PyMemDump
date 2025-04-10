@@ -5,11 +5,11 @@ import multiprocessing
 import threading
 import inspect
 import sys
-from rich.console import Console
+import rich
 from rich.text import Text
 from rich.panel import Panel
 
-console = Console()
+console = rich.get_console()
 
 def format_stack_trace(exctype, value, tb, max_depth=15, nested=False) -> Text:
     tb_list = traceback.extract_tb(tb)

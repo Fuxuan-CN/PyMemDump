@@ -1,6 +1,6 @@
 from typing import Any, TypeVar
 from functools import wraps
-from rich.console import Console
+import rich
 from rich.panel import Panel
 from rich.style import Style
 from rich.text import Text
@@ -23,7 +23,7 @@ class WarningBaseDecorator:
         self.category = category
         self.ignore = ignore
         self.wait_for_look = wait_for_look
-        self.console = Console()
+        self.console = rich.get_console()
         self.style = style
         self.title_warn_style = title_warn_style
         self.panel_style = panel_style

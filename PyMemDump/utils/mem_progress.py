@@ -1,5 +1,6 @@
 from rich.progress import Progress, TextColumn, BarColumn, TimeElapsedColumn, TransferSpeedColumn, TimeRemainingColumn
 from rich.traceback import install
+import rich
 
 # 启用 rich 的 traceback
 install()
@@ -15,5 +16,5 @@ mem_progress = Progress(
     TransferSpeedColumn(),
     "•",
     TimeRemainingColumn(),
-    console=None,
+    console=rich.get_console()
 )
