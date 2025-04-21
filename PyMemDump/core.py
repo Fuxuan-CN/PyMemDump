@@ -99,6 +99,7 @@ class MemoryDumper:
         self.pid = self._extra_process_id(self.process_target)
         if not verbose:
             logging.disable(logging.WARN) # disable logging if verbose is False
+        self._print_logo()
         logger.debug("MemoryDumper 初始化完成")
 
     def _print_logo(self) -> None:
@@ -294,8 +295,6 @@ class MemoryDumper:
         Args:
             language (str): language to use for the tool, default is zh_CN.
         """
-        # 打印程序的 logo 和版本信息
-        cls._print_logo(cls)
 
         # 创建参数解析器
         parser = argparse.ArgumentParser(
